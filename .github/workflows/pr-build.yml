@@ -1,4 +1,4 @@
-﻿name: PR Build
+name: PR Build
 on:
   pull_request:
     types:
@@ -21,7 +21,7 @@ jobs:
       - name: .NET Lint
         uses: zyactions/dotnet-lint@v1
         with:
-          workspace: Gelato.sln
+          workspace: TorNado.sln
           implicit-restore: true
   
   conventional-commits:

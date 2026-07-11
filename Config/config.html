@@ -66,6 +66,19 @@
               </div>
             </div>
 
+            <div class="inputContainer" style="display: flex; gap: 1em;">
+              <div style="flex: 1;">
+                <label class="inputLabel inputLabelUnfocused" for="txtNntpUsername">NNTP Username:</label>
+                <input is="emby-input" type="text" id="txtNntpUsername" class="emby-input" />
+                <div class="fieldDescription">TorBox NNTP username.</div>
+              </div>
+              <div style="flex: 1;">
+                <label class="inputLabel inputLabelUnfocused" for="txtNntpPassword">NNTP Password:</label>
+                <input is="emby-input" type="password" id="txtNntpPassword" class="emby-input" />
+                <div class="fieldDescription">TorBox NNTP password.</div>
+              </div>
+            </div>
+
             <div class="inputContainer">
               <label class="inputLabel inputLabelUnfocused" for="txtMoviePath">Movies path:</label>
               <input is="emby-input" type="text" id="txtMoviePath" class="emby-input" />
@@ -106,7 +119,7 @@
                 <span>Show streams for local items</span>
               </label>
               <div class="fieldDescription">
-                When enabled, Gelato will provide streams for shows imported by Jellyfin's file scanner.
+                When enabled, TorNado will provide streams for shows imported by Jellyfin's file scanner.
               </div>
             </div>
 
@@ -116,7 +129,7 @@
                 <span>Extend local series trees with virtual items</span>
               </label>
               <div class="fieldDescription">
-                When enabled, Gelato will inject missing seasons and episodes (as virtual items) into locally scanned shows,
+                When enabled, TorNado will inject missing seasons and episodes (as virtual items) into locally scanned shows,
                 so you can stream episodes you don't have on disk. Run the <strong>Sync Series Trees</strong> task after
                 changing this setting — it will create virtual items when enabled, or remove them when disabled.
               </div>
@@ -298,6 +311,8 @@
         const txtTorBoxUsenetServer = page.querySelector('#txtTorBoxUsenetServer');
         const txtNntpHost = page.querySelector('#txtNntpHost');
         const txtNntpPort = page.querySelector('#txtNntpPort');
+        const txtNntpUsername = page.querySelector('#txtNntpUsername');
+        const txtNntpPassword = page.querySelector('#txtNntpPassword');
         const txtMoviePath = page.querySelector('#txtMoviePath');
         const txtSeriesPath = page.querySelector('#txtSeriesPath');
 
@@ -350,6 +365,8 @@
             if (txtTorBoxUsenetServer) txtTorBoxUsenetServer.value = cfg.TorBoxUsenetServer || "https://search-api.torbox.app/newznab";
             if (txtNntpHost) txtNntpHost.value = cfg.NntpHost || "nntp.torbox.app";
             if (txtNntpPort) txtNntpPort.value = cfg.NntpPort || 563;
+            if (txtNntpUsername) txtNntpUsername.value = cfg.NntpUsername || "";
+            if (txtNntpPassword) txtNntpPassword.value = cfg.NntpPassword || "";
             if (txtMoviePath) txtMoviePath.value = cfg.MoviePath || "";
             if (txtSeriesPath) txtSeriesPath.value = cfg.SeriesPath || "";
             if (txtStreamTTL) txtStreamTTL.value = cfg.StreamTTL || 3600;
@@ -384,6 +401,8 @@
             cfg.TorBoxUsenetServer = txtTorBoxUsenetServer.value.trim();
             cfg.NntpHost = txtNntpHost.value.trim() || "nntp.torbox.app";
             cfg.NntpPort = parseInt(txtNntpPort.value) || 563;
+            cfg.NntpUsername = txtNntpUsername.value.trim();
+            cfg.NntpPassword = txtNntpPassword.value.trim();
             cfg.MoviePath = txtMoviePath.value.trim();
             cfg.SeriesPath = txtSeriesPath.value.trim();
 

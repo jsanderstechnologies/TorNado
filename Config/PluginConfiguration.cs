@@ -19,6 +19,8 @@ public class PluginConfiguration : BasePluginConfiguration
     public string TorBoxUsenetServer { get; set; } = "https://search-api.torbox.app/newznab";
     public string NntpHost { get; set; } = "nntp.torbox.app";
     public int NntpPort { get; set; } = 563;
+    public string NntpUsername { get; set; } = "";
+    public string NntpPassword { get; set; } = "";
 
     public bool EnableMixed { get; set; } = false;
     public bool ExtendLocalSeriesTrees { get; set; } = false;
@@ -80,6 +82,8 @@ public class UserConfig
             TorBoxUsenetServer = baseConfig.TorBoxUsenetServer,
             NntpHost = baseConfig.NntpHost,
             NntpPort = baseConfig.NntpPort,
+            NntpUsername = baseConfig.NntpUsername,
+            NntpPassword = baseConfig.NntpPassword,
 
             // All other fields from base config
             StreamTTL = baseConfig.StreamTTL,

@@ -1,4 +1,4 @@
-﻿name: Main Build
+name: Main Build
 on:
   push:
     branches:
@@ -17,7 +17,7 @@ jobs:
       - name: .NET Lint
         uses: zyactions/dotnet-lint@v1
         with:
-          workspace: Gelato.sln
+          workspace: TorNado.sln
           implicit-restore: true
   
   conventional-commits:
