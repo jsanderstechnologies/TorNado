@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using Gelato.Config;
+using TorNado.Config;
 using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Collections;
 using MediaBrowser.Controller.Entities;
@@ -10,11 +10,11 @@ using Microsoft.Extensions.Logging;
 
 // For BoxSet
 
-namespace Gelato.Services;
+namespace TorNado.Services;
 
 public class CatalogImportService(
     ILogger<CatalogImportService> logger,
-    GelatoManager manager,
+    TorNadoManager manager,
     CatalogService catalogService,
     ICollectionManager collectionManager,
     ILibraryManager libraryManager
@@ -39,7 +39,7 @@ public class CatalogImportService(
             logger.LogInformation("Catalog {Id} {Type} is disabled, skipping.", catalogId, type);
             return;
         }
-        var cfg = GelatoPlugin.Instance!.GetConfig(Guid.Empty);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(Guid.Empty);
         var stremio = cfg.Stremio;
         var seriesFolder = cfg.SeriesFolder;
         var movieFolder = cfg.MovieFolder;
@@ -305,3 +305,4 @@ public class CatalogImportService(
         progress?.Report(100);
     }
 }
+

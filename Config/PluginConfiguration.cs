@@ -4,15 +4,20 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Plugins;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Config;
+namespace TorNado.Config;
 
 public class PluginConfiguration : BasePluginConfiguration
 {
-    public string MoviePath { get; set; } = Path.Combine(Path.GetTempPath(), "gelato", "movies");
-    public string SeriesPath { get; set; } = Path.Combine(Path.GetTempPath(), "gelato", "series");
+    public string MoviePath { get; set; } = Path.Combine(Path.GetTempPath(), "tornado", "movies");
+    public string SeriesPath { get; set; } = Path.Combine(Path.GetTempPath(), "tornado", "series");
     public int StreamTTL { get; set; } = 3600;
     public int CatalogMaxItems { get; set; } = 100;
-    public string Url { get; set; } = "";
+    
+    // TMDB and TorBox configurations
+    public string TmdbApiKey { get; set; } = "";
+    public string TorBoxApiKey { get; set; } = "";
+    public string TorBoxUsenetServer { get; set; } = "https://search-api.torbox.app/newznab";
+
     public bool EnableMixed { get; set; } = false;
     public bool ExtendLocalSeriesTrees { get; set; } = false;
     public bool FilterUnreleased { get; set; } = false;
@@ -31,22 +36,9 @@ public class PluginConfiguration : BasePluginConfiguration
     public List<CatalogConfig> Catalogs { get; set; } = [];
     public List<UserConfig> UserConfigs { get; set; } = [];
 
-    public string GetBaseUrl()
-    {
-        if (string.IsNullOrWhiteSpace(Url))
-            throw new InvalidOperationException("Gelato Url not configured.");
-
-        var u = Url.Trim().TrimEnd('/');
-
-        if (u.EndsWith("/manifest.json", StringComparison.OrdinalIgnoreCase))
-            u = u[..^"/manifest.json".Length];
-
-        return u;
-    }
-
     [JsonIgnore]
     [XmlIgnore]
-    public GelatoStremioProvider? Stremio;
+    public TorNadoStremioProvider? Stremio;
 
     [JsonIgnore]
     [XmlIgnore]
@@ -66,7 +58,6 @@ public class PluginConfiguration : BasePluginConfiguration
 public class UserConfig
 {
     public Guid UserId { get; set; }
-    public string Url { get; set; } = "";
     public string MoviePath { get; set; } = "";
     public string SeriesPath { get; set; } = "";
     public bool DisableSearch { get; set; } = false;
@@ -79,10 +70,12 @@ public class UserConfig
         return new PluginConfiguration
         {
             // User overridable fields - all required, no fallback to baseConfig
-            Url = Url,
             MoviePath = MoviePath,
             SeriesPath = SeriesPath,
             DisableSearch = DisableSearch,
+            TmdbApiKey = baseConfig.TmdbApiKey,
+            TorBoxApiKey = baseConfig.TorBoxApiKey,
+            TorBoxUsenetServer = baseConfig.TorBoxUsenetServer,
 
             // All other fields from base config
             StreamTTL = baseConfig.StreamTTL,
@@ -104,25 +97,25 @@ public class UserConfig
     }
 }
 
-public class GelatoStremioProviderFactory(IHttpClientFactory http, ILoggerFactory log)
+public class TorNadoStremioProviderFactory(IHttpClientFactory http, ILoggerFactory log)
 {
     private readonly System.Collections.Concurrent.ConcurrentDictionary<
         string,
-        GelatoStremioProvider
+        TorNadoStremioProvider
     > _cache = new(StringComparer.OrdinalIgnoreCase);
 
-    public GelatoStremioProvider Create(Guid userId)
+    public TorNadoStremioProvider Create(Guid userId)
     {
-        var cfg = GelatoPlugin.Instance!.Configuration.GetEffectiveConfig(userId);
+        var cfg = TorNadoPlugin.Instance!.Configuration.GetEffectiveConfig(userId);
         return Create(cfg);
     }
 
-    public GelatoStremioProvider Create(PluginConfiguration cfg)
+    public TorNadoStremioProvider Create(PluginConfiguration cfg)
     {
-        var baseUrl = cfg.GetBaseUrl();
+        var key = cfg.TorBoxApiKey;
         return _cache.GetOrAdd(
-            baseUrl,
-            url => new GelatoStremioProvider(url, http, log.CreateLogger<GelatoStremioProvider>())
+            key,
+            _ => new TorNadoStremioProvider(cfg.TorBoxUsenetServer, http, log.CreateLogger<TorNadoStremioProvider>())
         );
     }
 
@@ -141,3 +134,4 @@ public class CatalogConfig
     public bool CreateCollection { get; set; } = false;
     public string Url { get; set; } = "";
 }
+

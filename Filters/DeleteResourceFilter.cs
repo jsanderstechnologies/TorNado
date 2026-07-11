@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Filters;
+namespace TorNado.Filters;
 
 public sealed class DeleteResourceFilter(
     ILibraryManager library,
-    GelatoManager manager,
+    TorNadoManager manager,
     IUserManager userManager,
     ILogger<DeleteResourceFilter> log
 ) : IAsyncActionFilter
@@ -32,8 +32,8 @@ public sealed class DeleteResourceFilter(
 
         var item = library.GetItemById<BaseItem>(guid, user);
 
-        // Only handle Gelato items that user can delete
-        if (item is null || !item.IsGelato() || !manager.CanDelete(item, user))
+        // Only handle TorNado items that user can delete
+        if (item is null || !item.IsTorNado() || !manager.CanDelete(item, user))
         {
             await next();
             return;
@@ -82,3 +82,4 @@ public sealed class DeleteResourceFilter(
         }
     }
 }
+

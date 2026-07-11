@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Services;
+namespace TorNado.Services;
 
 /// <summary>
 /// Client for retrieving intro timestamps from IntroDB.
@@ -230,3 +230,4 @@ public sealed record IntroDbIntroResult(
     double Confidence,
     int SubmissionCount
 );
+

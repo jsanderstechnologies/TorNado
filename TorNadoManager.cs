@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
-using Gelato.Config;
-using Gelato.Decorators;
+using TorNado.Config;
+using TorNado.Decorators;
 using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations.Entities;
 using MediaBrowser.Common.Configuration;
@@ -17,12 +17,12 @@ using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato;
+namespace TorNado;
 
-public sealed class GelatoManager(
+public sealed class TorNadoManager(
     ILoggerFactory loggerFactory,
     IProviderManager provider,
-    GelatoItemRepository repo,
+    TorNadoItemRepository repo,
     IFileSystem fileSystem,
     IMemoryCache memoryCache,
     IServerConfigurationManager serverConfig,
@@ -31,10 +31,10 @@ public sealed class GelatoManager(
     IApplicationPaths appPaths
 )
 {
-    public const string StreamTag = "gelato-stream";
-    public const string TreeSyncedTag = "gelato-tree-synced";
+    public const string StreamTag = "TorNado-stream";
+    public const string TreeSyncedTag = "TorNado-tree-synced";
 
-    private readonly ILogger<GelatoManager> _log = loggerFactory.CreateLogger<GelatoManager>();
+    private readonly ILogger<TorNadoManager> _log = loggerFactory.CreateLogger<TorNadoManager>();
 
     private int GetHttpPort()
     {
@@ -57,7 +57,7 @@ public sealed class GelatoManager(
         memoryCache.Set(
             $"streamsync:{guid}",
             guid,
-            TimeSpan.FromSeconds(GelatoPlugin.Instance!.Configuration.StreamTTL)
+            TimeSpan.FromSeconds(TorNadoPlugin.Instance!.Configuration.StreamTTL)
         );
     }
 
@@ -99,7 +99,7 @@ public sealed class GelatoManager(
         {
             File.WriteAllText(
                 seed,
-                "This is a seed file created by Gelato so that library scans are triggered. Do not remove."
+                "This is a seed file created by TorNado so that library scans are triggered. Do not remove."
             );
         }
     }
@@ -107,14 +107,14 @@ public sealed class GelatoManager(
     public Folder? TryGetMovieFolder(Guid userId)
     {
         return TryGetFolder(
-            GelatoPlugin.Instance!.Configuration.GetEffectiveConfig(userId).MoviePath
+            TorNadoPlugin.Instance!.Configuration.GetEffectiveConfig(userId).MoviePath
         );
     }
 
     public Folder? TryGetSeriesFolder(Guid userId)
     {
         return TryGetFolder(
-            GelatoPlugin.Instance!.Configuration.GetEffectiveConfig(userId).SeriesPath
+            TorNadoPlugin.Instance!.Configuration.GetEffectiveConfig(userId).SeriesPath
         );
     }
 
@@ -146,7 +146,7 @@ public sealed class GelatoManager(
         var item = IntoBaseItem(meta);
         if (item?.ProviderIds is { Count: > 0 })
             return FindExistingItem(item, user);
-        _log.LogWarning("Gelato: Missing provider ids, skipping");
+        _log.LogWarning("TorNado: Missing provider ids, skipping");
         return null;
     }
 
@@ -198,7 +198,7 @@ public sealed class GelatoManager(
         }
         _log.LogDebug("inserting  {Name}", meta.Name);
         var baseItemKind = mediaType.ToBaseItem();
-        var cfg = GelatoPlugin.Instance!.GetConfig(user?.Id ?? Guid.Empty);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(user?.Id ?? Guid.Empty);
 
         // load in full metadata if needed.
         if (
@@ -410,7 +410,7 @@ public sealed class GelatoManager(
         var providerIds = video.ProviderIds;
         providerIds.TryAdd("Stremio", uri.ExternalId);
 
-        var cfg = GelatoPlugin.Instance!.GetConfig(userId);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
         var stremio = cfg.Stremio;
         var streams = await stremio.GetStreamsAsync(uri).ConfigureAwait(false);
         var httpPort = GetHttpPort();
@@ -451,11 +451,11 @@ public sealed class GelatoManager(
             .Where(v => v.IsStream())
             .ToList();
 
-        // Match stream rows by persisted Gelato guid, not by volatile playback URL/path.
+        // Match stream rows by persisted TorNado guid, not by volatile playback URL/path.
         var existingByGuid = new Dictionary<Guid, Video>();
         foreach (var existingItem in existingStreamItems)
         {
-            var existingGuid = existingItem.GelatoData<Guid?>("guid");
+            var existingGuid = existingItem.TorNadoData<Guid?>("guid");
             if (existingGuid is null || existingGuid == Guid.Empty)
             {
                 // Strict guid matching: ignore rows without a persisted guid.
@@ -482,7 +482,7 @@ public sealed class GelatoManager(
             var index = i + 1;
             var path = s.IsFile()
                 ? s.Url
-                : $"http://127.0.0.1:{httpPort}/gelato/stream?ih={s.InfoHash}"
+                : $"http://127.0.0.1:{httpPort}/TorNado/stream?ih={s.InfoHash}"
                     + (s.FileIdx is not null ? $"&idx={s.FileIdx}" : "")
                     + (
                         s.Sources is { Count: > 0 }
@@ -533,25 +533,25 @@ public sealed class GelatoManager(
             streamItem.IsVirtualItem = false;
             streamItem.SetParent(parent);
 
-            var users = streamItem.GelatoData<List<Guid>>("userIds") ?? [];
+            var users = streamItem.TorNadoData<List<Guid>>("userIds") ?? [];
             if (!users.Contains(userId))
             {
                 users.Add(userId);
-                streamItem.SetGelatoData("userIds", users);
+                streamItem.SetTorNadoData("userIds", users);
             }
 
-            streamItem.SetGelatoData("name", s.Name);
-            streamItem.SetGelatoData("description", s.Description);
+            streamItem.SetTorNadoData("name", s.Name);
+            streamItem.SetTorNadoData("description", s.Description);
             if (!string.IsNullOrEmpty(s.BehaviorHints?.BingeGroup))
             {
-                streamItem.SetGelatoData("bingeGroup", s.BehaviorHints.BingeGroup);
+                streamItem.SetTorNadoData("bingeGroup", s.BehaviorHints.BingeGroup);
             }
             if (!string.IsNullOrEmpty(s.BehaviorHints?.Filename))
             {
-                streamItem.SetGelatoData("filename", s.BehaviorHints.Filename);
+                streamItem.SetTorNadoData("filename", s.BehaviorHints.Filename);
             }
-            streamItem.SetGelatoData("index", index);
-            streamItem.SetGelatoData("guid", streamGuid);
+            streamItem.SetTorNadoData("index", index);
+            streamItem.SetTorNadoData("guid", streamGuid);
             // Keep map current so stale detection below uses the final upserted set.
             existingByGuid[streamGuid] = streamItem;
 
@@ -565,19 +565,19 @@ public sealed class GelatoManager(
         var stale = existingByGuid
             .Values.Where(m =>
                 !newIds.Contains(m.Id)
-                && (m.GelatoData<List<Guid>>("userIds")?.Contains(userId) ?? false)
+                && (m.TorNadoData<List<Guid>>("userIds")?.Contains(userId) ?? false)
             )
             .ToList();
 
         foreach (var _item in stale)
         {
-            var users = _item.GelatoData<List<Guid>>("userIds") ?? [];
+            var users = _item.TorNadoData<List<Guid>>("userIds") ?? [];
             users.Remove(userId);
-            _item.SetGelatoData("userIds", users);
+            _item.SetTorNadoData("userIds", users);
         }
 
         var toDelete = stale
-            .Where(item => item.GelatoData<List<Guid>>("userIds") is { Count: 0 })
+            .Where(item => item.TorNadoData<List<Guid>>("userIds") is { Count: 0 })
             .ToList();
         var toSave = stale.Except(toDelete).ToList();
 
@@ -603,7 +603,7 @@ public sealed class GelatoManager(
         stopwatch.Stop();
 
         _log.LogInformation(
-            $"SyncStreams finished GelatoId={uri.ExternalId} userId={userId} duration={Math.Round(stopwatch.Elapsed.TotalSeconds, 1)}s streams={upsertedStreams.Count}"
+            $"SyncStreams finished TorNadoId={uri.ExternalId} userId={userId} duration={Math.Round(stopwatch.Elapsed.TotalSeconds, 1)}s streams={upsertedStreams.Count}"
         );
 
         return acceptable.Count;
@@ -627,7 +627,7 @@ public sealed class GelatoManager(
 
     public bool IsStremio(BaseItem item)
     {
-        return item.IsGelato();
+        return item.IsTorNado();
     }
 
     public async Task<BaseItem?> SyncSeriesTreesAsync(
@@ -643,12 +643,12 @@ public sealed class GelatoManager(
 
         if (existingSeries is not null)
         {
-            // Local (non-gelato) series — use as-is, no creation needed
+            // Local (non-TorNado) series — use as-is, no creation needed
             series = existingSeries;
         }
         else
         {
-            // Gelato series — create or find under the virtual folder
+            // TorNado series — create or find under the virtual folder
             if (seriesRootFolder is null || string.IsNullOrWhiteSpace(seriesRootFolder.Path))
             {
                 _log.LogWarning("seriesRootFolder null or empty for {SeriesId}", seriesMeta.Id);
@@ -915,7 +915,7 @@ public sealed class GelatoManager(
     }
 
     /// <summary>
-    /// Pass 1: fixes EndDate on all gelato media items (movies get TMDB digital release date,
+    /// Pass 1: fixes EndDate on all TorNado media items (movies get TMDB digital release date,
     /// series/seasons/episodes get PremiereDate as EndDate).
     /// </summary>
     public async Task SyncReleaseDates(
@@ -924,7 +924,7 @@ public sealed class GelatoManager(
         IProgress<double>? progress = null
     )
     {
-        var cfg = GelatoPlugin.Instance!.GetConfig(userId);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
         var stremio = cfg.Stremio;
         if (stremio is null)
             return;
@@ -1045,7 +1045,7 @@ public sealed class GelatoManager(
     }
 
     /// <summary>
-    /// Syncs series trees: fetches new episodes for all continuing series (gelato + local),
+    /// Syncs series trees: fetches new episodes for all continuing series (TorNado + local),
     /// and extends local series trees for the first time if ExtendLocalSeriesTrees is enabled.
     /// </summary>
     public async Task SyncSeriesTrees(
@@ -1054,24 +1054,24 @@ public sealed class GelatoManager(
         IProgress<double>? progress = null
     )
     {
-        var cfg = GelatoPlugin.Instance!.GetConfig(userId);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
         var stremio = cfg.Stremio;
         if (stremio is null)
             return;
 
-        var gelatoProviders = new Dictionary<string, string>
+        var TorNadoProviders = new Dictionary<string, string>
         {
             { "Stremio", string.Empty },
             { "stremio", string.Empty },
         };
 
-        var continuingGelatoSeries = libraryManager
+        var continuingTorNadoSeries = libraryManager
             .GetItemList(
                 new InternalItemsQuery
                 {
                     IncludeItemTypes = [BaseItemKind.Series],
                     SeriesStatuses = [SeriesStatus.Continuing],
-                    HasAnyProviderId = gelatoProviders,
+                    HasAnyProviderId = TorNadoProviders,
                 }
             )
             .OfType<Series>()
@@ -1088,7 +1088,7 @@ public sealed class GelatoManager(
                 )
                 .OfType<Series>()
                 .Where(s =>
-                    !s.IsGelato()
+                    !s.IsTorNado()
                     && (
                         !string.IsNullOrWhiteSpace(s.GetProviderId("Imdb"))
                         || !string.IsNullOrWhiteSpace(s.GetProviderId("Tmdb"))
@@ -1097,7 +1097,7 @@ public sealed class GelatoManager(
                 .ToList()
             : [];
 
-        var continuingSeries = continuingGelatoSeries.Concat(continuingLocalSeries).ToList();
+        var continuingSeries = continuingTorNadoSeries.Concat(continuingLocalSeries).ToList();
 
         var total = continuingSeries.Count;
         var i = 0;
@@ -1116,7 +1116,7 @@ public sealed class GelatoManager(
                     var meta = await stremio.GetMetaAsync(series).ConfigureAwait(false);
                     if (meta is not null)
                     {
-                        var isLocal = !series.IsGelato();
+                        var isLocal = !series.IsTorNado();
                         await SyncSeriesTreesAsync(
                                 cfg,
                                 meta,
@@ -1161,7 +1161,7 @@ public sealed class GelatoManager(
 
     private async Task SyncLocalSeriesTreesAsync(
         PluginConfiguration cfg,
-        GelatoStremioProvider stremio,
+        TorNadoStremioProvider stremio,
         CancellationToken ct,
         IProgress<double>? progress,
         int progressOffset,
@@ -1172,7 +1172,7 @@ public sealed class GelatoManager(
             .GetItemList(new InternalItemsQuery { IncludeItemTypes = [BaseItemKind.Series] })
             .OfType<Series>()
             .Where(s =>
-                !s.IsGelato()
+                !s.IsTorNado()
                 && s.Status != SeriesStatus.Continuing // continuing handled in pass 2
                 && (
                     !string.IsNullOrWhiteSpace(s.GetProviderId("Imdb"))
@@ -1183,7 +1183,7 @@ public sealed class GelatoManager(
             .ToList();
 
         _log.LogInformation(
-            "SyncSeriesTrees: {Count} local (non-gelato, non-continuing) series to extend for the first time.",
+            "SyncSeriesTrees: {Count} local (non-TorNado, non-continuing) series to extend for the first time.",
             localSeries.Count
         );
 
@@ -1236,7 +1236,7 @@ public sealed class GelatoManager(
             .OfType<Episode>()
             .ToList();
 
-        var virtualEpisodes = allEpisodes.Where(ep => ep.IsGelato()).ToList();
+        var virtualEpisodes = allEpisodes.Where(ep => ep.IsTorNado()).ToList();
 
         if (virtualEpisodes.Count == 0)
             return;
@@ -1402,7 +1402,7 @@ public sealed class GelatoManager(
         }
 
         item.ProductionYear = meta.GetYear();
-        item.Path = $"gelato://stub/{id}";
+        item.Path = $"TorNado://stub/{id}";
 
         // Provider IDs — skip for episodes since the parent series IMDB id is used there
         if (meta.Type is not StremioMediaType.Episode && !string.IsNullOrWhiteSpace(id))
@@ -1515,10 +1515,11 @@ public sealed class GelatoManager(
         if (meta.App_Extras?.ReleaseDates is not null)
             return;
 
-        var stremio = GelatoPlugin.Instance?.Configuration.Stremio;
+        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
         if (stremio is null)
             return;
 
         await stremio.EnrichDigitalReleaseDateAsync(meta, ct).ConfigureAwait(false);
     }
 }
+

@@ -1,4 +1,4 @@
-using Gelato.Config;
+using TorNado.Config;
 using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Dto;
 using MediaBrowser.Model.Dto;
@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Filters;
+namespace TorNado.Filters;
 
 public class SearchActionFilter(
     IDtoService dtoService,
-    GelatoManager manager,
+    TorNadoManager manager,
     ILogger<SearchActionFilter> log
 ) : IAsyncActionFilter, IOrderedFilter
 {
@@ -23,7 +23,7 @@ public class SearchActionFilter(
     )
     {
         ctx.TryGetUserId(out var userId);
-        var cfg = GelatoPlugin.Instance!.GetConfig(userId);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
         if (
             cfg.DisableSearch
             || !ctx.IsApiSearchAction()
@@ -131,7 +131,7 @@ public class SearchActionFilter(
         else if (requestedTypes.Contains(BaseItemKind.Movie))
         {
             log.LogWarning(
-                "No movie folder found, please add your gelato path to a library and rescan. skipping search"
+                "No movie folder found, please add your TorNado path to a library and rescan. skipping search"
             );
         }
 
@@ -142,7 +142,7 @@ public class SearchActionFilter(
         else if (requestedTypes.Contains(BaseItemKind.Series))
         {
             log.LogWarning(
-                "No series folder found, please add your gelato path to a library and rescan. skipping search"
+                "No series folder found, please add your TorNado path to a library and rescan. skipping search"
             );
         }
 
@@ -184,3 +184,4 @@ public class SearchActionFilter(
         return dtos;
     }
 }
+

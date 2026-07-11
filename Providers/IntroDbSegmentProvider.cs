@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Gelato.Services;
+using TorNado.Services;
 using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations.Enums;
 using MediaBrowser.Controller;
@@ -22,7 +22,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.MediaSegments;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Providers;
+namespace TorNado.Providers;
 
 /// <summary>
 /// IntroDB media segment provider.
@@ -68,7 +68,7 @@ public class IntroDbSegmentProvider : IMediaSegmentProvider
     }
 
     /// <inheritdoc />
-    public string Name => "Gelato IntroDB";
+    public string Name => "TorNado IntroDB";
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<MediaSegmentDto>> GetMediaSegments(
@@ -254,3 +254,4 @@ public class IntroDbSegmentProvider : IMediaSegmentProvider
         return seasonNumber > 0 && episodeNumber > 0;
     }
 }
+

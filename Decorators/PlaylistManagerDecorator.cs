@@ -8,11 +8,11 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Playlists;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Decorators;
+namespace TorNado.Decorators;
 
 public sealed class PlaylistManagerDecorator(
     IPlaylistManager inner,
-    Lazy<GelatoManager> manager,
+    Lazy<TorNadoManager> manager,
     ILibraryManager libraryManager,
     IUserManager userManager,
     IProviderManager providerManager,
@@ -69,7 +69,7 @@ public sealed class PlaylistManagerDecorator(
 
         var newChildren = toAdd
             .Select(item =>
-                item.IsGelato()
+                item.IsTorNado()
                     ? new LinkedChild
                     {
                         LibraryItemId = item.Id.ToString("N", CultureInfo.InvariantCulture),
@@ -114,3 +114,4 @@ public sealed class PlaylistManagerDecorator(
 
     public void SavePlaylistFile(Playlist item) => inner.SavePlaylistFile(item);
 }
+

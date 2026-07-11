@@ -7,11 +7,11 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Decorators;
+namespace TorNado.Decorators;
 
 public sealed class CollectionManagerDecorator(
     ICollectionManager inner,
-    Lazy<GelatoManager> manager,
+    Lazy<TorNadoManager> manager,
     ILibraryManager libraryManager,
     IProviderManager providerManager,
     IDirectoryService directoryService,
@@ -69,7 +69,7 @@ public sealed class CollectionManagerDecorator(
         for (var i = 0; i < itemList.Count; i++)
         {
             var item = itemList[i];
-            newChildren[originalLen + i] = item.IsGelato()
+            newChildren[originalLen + i] = item.IsTorNado()
                 ? new LinkedChild
                 {
                     LibraryItemId = item.Id.ToString("N", CultureInfo.InvariantCulture),
@@ -78,9 +78,9 @@ public sealed class CollectionManagerDecorator(
                 : LinkedChild.Create(item);
 
             log.LogDebug(
-                "Adding item {Id} (Gelato={IsGelato}) to collection {Name}",
+                "Adding item {Id} (TorNado={IsTorNado}) to collection {Name}",
                 item.Id,
-                item.IsGelato(),
+                item.IsTorNado(),
                 collection.Name
             );
         }
@@ -112,3 +112,4 @@ public sealed class CollectionManagerDecorator(
     public Task<Folder?> GetCollectionsFolder(bool createIfNeeded) =>
         inner.GetCollectionsFolder(createIfNeeded);
 }
+

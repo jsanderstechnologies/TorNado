@@ -4,13 +4,13 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Providers;
+namespace TorNado.Providers;
 
-public sealed class GelatoSeasonMetadataProvider(ILogger<GelatoSeasonMetadataProvider> log)
+public sealed class TorNadoSeasonMetadataProvider(ILogger<TorNadoSeasonMetadataProvider> log)
     : IRemoteMetadataProvider<Season, SeasonInfo>,
         IHasOrder
 {
-    public string Name => "Gelato";
+    public string Name => "TorNado";
     public int Order => 0;
 
     public async Task<MetadataResult<Season>> GetMetadata(
@@ -28,11 +28,11 @@ public sealed class GelatoSeasonMetadataProvider(ILogger<GelatoSeasonMetadataPro
 
         if (string.IsNullOrWhiteSpace(seriesImdbId))
         {
-            log.LogDebug("GelatoSeasonMetadataProvider: no series IMDB id for {Name}", info.Name);
+            log.LogDebug("TorNadoSeasonMetadataProvider: no series IMDB id for {Name}", info.Name);
             return result;
         }
 
-        var stremio = GelatoPlugin.Instance?.Configuration.Stremio;
+        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
         if (stremio is null)
             return result;
 
@@ -47,7 +47,7 @@ public sealed class GelatoSeasonMetadataProvider(ILogger<GelatoSeasonMetadataPro
         {
             log.LogWarning(
                 ex,
-                "GelatoSeasonMetadataProvider: failed to fetch series meta for {Id}",
+                "TorNadoSeasonMetadataProvider: failed to fetch series meta for {Id}",
                 seriesImdbId
             );
             return result;
@@ -99,3 +99,4 @@ public sealed class GelatoSeasonMetadataProvider(ILogger<GelatoSeasonMetadataPro
         return season;
     }
 }
+

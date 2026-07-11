@@ -10,9 +10,9 @@ using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Querying;
 using Microsoft.AspNetCore.Http;
 
-namespace Gelato.Decorators;
+namespace TorNado.Decorators;
 
-public sealed class GelatoItemRepository(IItemRepository inner, IHttpContextAccessor http)
+public sealed class TorNadoItemRepository(IItemRepository inner, IHttpContextAccessor http)
     : IItemRepository
 {
     private static readonly BaseItemKind[] ListScopeMediaKinds =
@@ -59,7 +59,7 @@ public sealed class GelatoItemRepository(IItemRepository inner, IHttpContextAcce
     {
         var includeTypes = filter.IncludeItemTypes;
         var includesPerson = includeTypes.Contains(BaseItemKind.Person);
-        // Internal Gelato/library lookups should never be reshaped by listing filters.
+        // Internal TorNado/library lookups should never be reshaped by listing filters.
         // Path-based queries are commonly used to resolve configured root folders.
         if (filter.IsDeadPerson == true || !string.IsNullOrWhiteSpace(filter.Path))
         {
@@ -76,11 +76,11 @@ public sealed class GelatoItemRepository(IItemRepository inner, IHttpContextAcce
         if (!isListingIntent)
             return filter;
 
-        var filterUnreleased = GelatoPlugin.Instance!.Configuration.FilterUnreleased;
-        var bufferDays = GelatoPlugin.Instance.Configuration.FilterUnreleasedBufferDays;
+        var filterUnreleased = TorNadoPlugin.Instance!.Configuration.FilterUnreleased;
+        var bufferDays = TorNadoPlugin.Instance.Configuration.FilterUnreleasedBufferDays;
         var hasIncludeTypes = includeTypes.Length != 0;
         var isStreamTagQuery = filter.Tags.Contains(
-            GelatoManager.StreamTag,
+            TorNadoManager.StreamTag,
             StringComparer.OrdinalIgnoreCase
         );
         var isTargetedLookup =
@@ -103,7 +103,7 @@ public sealed class GelatoItemRepository(IItemRepository inner, IHttpContextAcce
 
         // Do not override queries that explicitly target stream-tagged rows.
         if (!isStreamTagQuery && filter.ExcludeTags.Length == 0)
-            filter.ExcludeTags = [GelatoManager.StreamTag];
+            filter.ExcludeTags = [TorNadoManager.StreamTag];
 
         if (filter.MaxPremiereDate is not null || !filterUnreleased)
             return filter;
@@ -181,3 +181,4 @@ public sealed class GelatoItemRepository(IItemRepository inner, IHttpContextAcce
     public Task ReattachUserDataAsync(BaseItem item, CancellationToken cancellationToken) =>
         inner.ReattachUserDataAsync(item, cancellationToken);
 }
+

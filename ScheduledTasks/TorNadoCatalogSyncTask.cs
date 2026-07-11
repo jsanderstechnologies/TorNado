@@ -1,25 +1,26 @@
-using Gelato.Services;
+using TorNado.Services;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.ScheduledTasks;
+namespace TorNado.ScheduledTasks;
 
-public sealed class GelatoCatalogItemsSyncTask(
-    ILogger<GelatoCatalogItemsSyncTask> log,
+public sealed class TorNadoCatalogItemsSyncTask(
+    ILogger<TorNadoCatalogItemsSyncTask> log,
     CatalogImportService importService
 ) : IScheduledTask
 {
     public string Name => "Import Catalogs";
-    public string Key => "GelatoCatalogItemsSync";
+    public string Key => "TorNadoCatalogItemsSync";
     public string Description => "Imports items from enabled Stremio catalogs into Jellyfin.";
-    public string Category => "Gelato";
+    public string Category => "TorNado";
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers() => [];
 
     public async Task ExecuteAsync(IProgress<double> progress, CancellationToken ct)
     {
-        log.LogInformation("Starting Gelato catalog sync task...");
+        log.LogInformation("Starting TorNado catalog sync task...");
         await importService.SyncAllEnabledAsync(ct, progress).ConfigureAwait(false);
-        log.LogInformation("Gelato catalog sync task finished.");
+        log.LogInformation("TorNado catalog sync task finished.");
     }
 }
+

@@ -4,18 +4,18 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.ScheduledTasks;
+namespace TorNado.ScheduledTasks;
 
-public sealed class PurgeGelatoTask(
+public sealed class PurgeTorNadoTask(
     ILibraryManager libraryManager,
-    ILogger<PurgeGelatoTask> log,
-    GelatoManager manager
+    ILogger<PurgeTorNadoTask> log,
+    TorNadoManager manager
 ) : IScheduledTask
 {
-    public string Name => "WARNING: purge all gelato items";
-    public string Key => "PurgeGelatoTask";
-    public string Description => "Removes all gelato items (local items are kept)";
-    public string Category => "Gelato Maintenance";
+    public string Name => "WARNING: purge all TorNado items";
+    public string Key => "PurgeTorNadoTask";
+    public string Description => "Removes all TorNado items (local items are kept)";
+    public string Category => "TorNado Maintenance";
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers() => [];
 
@@ -47,7 +47,7 @@ public sealed class PurgeGelatoTask(
             )
             .Where(item =>
             {
-                if (!item.IsGelato())
+                if (!item.IsTorNado())
                 {
                     return false;
                 }
@@ -91,3 +91,4 @@ public sealed class PurgeGelatoTask(
         return Task.CompletedTask;
     }
 }
+

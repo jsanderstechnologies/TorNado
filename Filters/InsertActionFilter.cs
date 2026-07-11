@@ -5,10 +5,10 @@ using MediaBrowser.Controller.Library;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Filters;
+namespace TorNado.Filters;
 
 public class InsertActionFilter(
-    GelatoManager manager,
+    TorNadoManager manager,
     IUserManager userManager,
     ILibraryManager libraryManager,
     ILogger<InsertActionFilter> log
@@ -33,8 +33,8 @@ public class InsertActionFilter(
             return;
         }
 
-        // Handle local (non-gelato) series: sync or clean tree on demand
-        if (libraryManager.GetItemById(guid) is Series localSeries && !localSeries.IsGelato())
+        // Handle local (non-TorNado) series: sync or clean tree on demand
+        if (libraryManager.GetItemById(guid) is Series localSeries && !localSeries.IsTorNado())
         {
             await HandleLocalSeriesAsync(userId, localSeries, ctx.HttpContext.RequestAborted);
             await next();
@@ -75,7 +75,7 @@ public class InsertActionFilter(
         }
 
         // Fetch full metadata
-        var cfg = GelatoPlugin.Instance!.GetConfig(userId);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
         var meta = await cfg.Stremio.GetMetaAsync(
             stremioMeta.ImdbId ?? stremioMeta.Id,
             stremioMeta.Type
@@ -104,12 +104,12 @@ public class InsertActionFilter(
 
     private async Task HandleLocalSeriesAsync(Guid userId, Series series, CancellationToken ct)
     {
-        var cfg = GelatoPlugin.Instance!.GetConfig(userId);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
 
         if (cfg.ExtendLocalSeriesTrees)
         {
             var alreadySynced =
-                series.Tags?.Contains(GelatoManager.TreeSyncedTag, StringComparer.OrdinalIgnoreCase)
+                series.Tags?.Contains(TorNadoManager.TreeSyncedTag, StringComparer.OrdinalIgnoreCase)
                 ?? false;
             if (alreadySynced)
                 return;
@@ -171,3 +171,4 @@ public class InsertActionFilter(
         return baseItem;
     }
 }
+

@@ -3,15 +3,15 @@ using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Text.Json;
-using Gelato.Services;
+using TorNado.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Controllers;
+namespace TorNado.Controllers;
 
 /// <summary>
-/// Palco API - Simple key-value cache migrated to Gelato.
+/// Palco API - Simple key-value cache migrated to TorNado.
 /// Maintains the /Palco route for compatibility.
 /// </summary>
 [ApiController]
@@ -21,8 +21,8 @@ public class PalcoCacheController(ILogger<PalcoCacheController> logger) : Contro
 {
     private const string RegistrationNs = "anfiteatro-registration";
 
-    // Access the service via GelatoPlugin instance or injection
-    private PalcoCacheService? Cache => GelatoPlugin.Instance?.PalcoCache;
+    // Access the service via TorNadoPlugin instance or injection
+    private PalcoCacheService? Cache => TorNadoPlugin.Instance?.PalcoCache;
 
     // ========== PUBLIC ENDPOINTS (No Auth) ==========
 
@@ -55,7 +55,7 @@ public class PalcoCacheController(ILogger<PalcoCacheController> logger) : Contro
 
         // Store request
         Cache.Set(request.Id, request.Data, request.TtlSeconds, RegistrationNs);
-        logger.LogInformation("[Gelato] Palco Registration request received: {Id}", request.Id);
+        logger.LogInformation("[TorNado] Palco Registration request received: {Id}", request.Id);
 
         // Update request index for listing
         var indexJson = Cache.Get("requests-index", RegistrationNs);
@@ -68,7 +68,7 @@ public class PalcoCacheController(ILogger<PalcoCacheController> logger) : Contro
         {
             index.Add(requestId);
             Cache.Set("requests-index", JsonSerializer.Serialize(index), 0, RegistrationNs);
-            logger.LogInformation("[Gelato] Palco Request added to index: {Id}", requestId);
+            logger.LogInformation("[TorNado] Palco Request added to index: {Id}", requestId);
         }
 
         // Notify admin via email if SMTP is configured
@@ -125,7 +125,7 @@ public class PalcoCacheController(ILogger<PalcoCacheController> logger) : Contro
 
                         await client.SendMailAsync(mail);
                         logger.LogInformation(
-                            "[Gelato] Palco Admin notification sent to {AdminEmail} for registration: {Id}",
+                            "[TorNado] Palco Admin notification sent to {AdminEmail} for registration: {Id}",
                             adminEmail,
                             requestId
                         );
@@ -135,7 +135,7 @@ public class PalcoCacheController(ILogger<PalcoCacheController> logger) : Contro
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "[Gelato] Palco Failed to send admin notification email");
+            logger.LogWarning(ex, "[TorNado] Palco Failed to send admin notification email");
         }
 
         return Ok(new { success = true, requestId });
@@ -178,7 +178,7 @@ public class PalcoCacheController(ILogger<PalcoCacheController> logger) : Contro
         if (Cache == null)
             return StatusCode(503);
         Cache.Set(key, request.Value, request.TtlSeconds, ns);
-        logger.LogInformation("[Gelato] Palco Saved: {Key} in {Ns}", key, ns);
+        logger.LogInformation("[TorNado] Palco Saved: {Key} in {Ns}", key, ns);
         return Ok(new { success = true });
     }
 
@@ -204,7 +204,7 @@ public class PalcoCacheController(ILogger<PalcoCacheController> logger) : Contro
                 {
                     Cache.Set("requests-index", JsonSerializer.Serialize(index), 0, RegistrationNs);
                     logger.LogInformation(
-                        "[Gelato] Palco Request removed from index: {Id}",
+                        "[TorNado] Palco Request removed from index: {Id}",
                         requestId
                     );
                 }
@@ -212,7 +212,7 @@ public class PalcoCacheController(ILogger<PalcoCacheController> logger) : Contro
         }
 
         logger.LogInformation(
-            "[Gelato] Palco Deleted: {Key} from {Ns}, success={Deleted}",
+            "[TorNado] Palco Deleted: {Key} from {Ns}, success={Deleted}",
             key,
             ns,
             deleted
@@ -277,12 +277,12 @@ public class PalcoCacheController(ILogger<PalcoCacheController> logger) : Contro
             mail.To.Add(request.To);
 
             await client.SendMailAsync(mail);
-            logger.LogInformation("[Gelato] Palco Email sent to {To}", request.To);
+            logger.LogInformation("[TorNado] Palco Email sent to {To}", request.To);
             return Ok(new { success = true });
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "[Gelato] Palco Email failed to {To}", request.To);
+            logger.LogError(ex, "[TorNado] Palco Email failed to {To}", request.To);
             return Ok(new { success = false, error = ex.Message });
         }
     }
@@ -351,3 +351,4 @@ public class SmtpConfig
 }
 
 #endregion
+

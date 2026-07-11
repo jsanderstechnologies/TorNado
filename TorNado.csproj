@@ -3,8 +3,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>Gelato</AssemblyName>
-    <Version>0.26.0.0</Version>
+    <AssemblyName>TorNado</AssemblyName>
+    <Version>1.0.0.0</Version>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -27,7 +27,7 @@
     <ItemGroup>
       <AllDlls Include="$(OutDir)*.dll" />
       <FilesToKeep
-        Include="&#xA;        $(OutDir)Gelato.dll;&#xA;        $(OutDir)JellyfinLoaderStub*.dll;  &#xA;        $(OutDir)0Harmony.dll;             &#xA;        $(OutDir)MonoTorrent*.dll;&#xA;        $(OutDir)Mono.Nat.dll;&#xA;        $(OutDir)ReusableTasks.dll"
+        Include="&#xA;        $(OutDir)TorNado.dll;&#xA;        $(OutDir)JellyfinLoaderStub*.dll;  &#xA;        $(OutDir)0Harmony.dll;             &#xA;        $(OutDir)MonoTorrent*.dll;&#xA;        $(OutDir)Mono.Nat.dll;&#xA;        $(OutDir)ReusableTasks.dll"
       />
       <FilesToDelete Include="@(AllDlls)" Exclude="@(FilesToKeep)" />
     </ItemGroup>

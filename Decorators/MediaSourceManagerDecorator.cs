@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Gelato.Providers;
-using Gelato.Services;
+using TorNado.Providers;
+using TorNado.Services;
 using Jellyfin.Data;
 using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations.Entities;
@@ -30,18 +30,18 @@ using MediaBrowser.Model.Providers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Decorators;
+namespace TorNado.Decorators;
 
 public sealed class MediaSourceManagerDecorator(
     IMediaSourceManager inner,
     ILibraryManager libraryManager,
     ILogger<MediaSourceManagerDecorator> log,
     IHttpContextAccessor http,
-    GelatoItemRepository repo,
+    TorNadoItemRepository repo,
     IDirectoryService directoryService,
     IServerConfigurationManager config,
     //Lazy<ISubtitleManager> subtitleManager,
-    Lazy<GelatoManager> manager,
+    Lazy<TorNadoManager> manager,
     Lazy<SubtitleProvider> subtitleProvider,
     IMediaSegmentManager mediaSegmentManager,
     IEnumerable<ICustomMetadataProvider<Video>> videoProbeProviders
@@ -60,7 +60,7 @@ public sealed class MediaSourceManagerDecorator(
         libraryManager ?? throw new ArgumentNullException(nameof(libraryManager));
     private readonly IServerConfigurationManager _config =
         config ?? throw new ArgumentNullException(nameof(config));
-    private readonly Lazy<GelatoManager> _manager = manager;
+    private readonly Lazy<TorNadoManager> _manager = manager;
     private readonly Lazy<SubtitleProvider> _subtitleProvider = subtitleProvider;
 
     //  private readonly Lazy<ISubtitleManager> _subtitleManager = subtitleManager ?? throw new ArgumentNullException(nameof(subtitleManager));
@@ -86,9 +86,9 @@ public sealed class MediaSourceManagerDecorator(
             ctx.TryGetUserId(out userId);
         }
 
-        var cfg = GelatoPlugin.Instance!.GetConfig(userId);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
         if (
-            (!cfg.EnableMixed && !item.IsGelato())
+            (!cfg.EnableMixed && !item.IsTorNado())
             || item.GetBaseItemKind() is not (BaseItemKind.Movie or BaseItemKind.Episode)
         )
         {
@@ -128,13 +128,13 @@ public sealed class MediaSourceManagerDecorator(
                     {
                         _log.LogDebug("GetStaticMediaSources refreshing streams for {Id}", item.Id);
 
-                        // Prewarm subtitle cache in the background if Gelato Subtitles
+                        // Prewarm subtitle cache in the background if TorNado Subtitles
                         // is enabled for this library.
                         var libraryOptions = _libraryManager.GetLibraryOptions(item);
                         var subtitlePrewarmEnabled =
                             libraryOptions.SubtitleDownloadLanguages?.Length > 0
                             && !libraryOptions.DisabledSubtitleFetchers.Contains(
-                                "Gelato Subtitles",
+                                "TorNado Subtitles",
                                 StringComparer.OrdinalIgnoreCase
                             );
 
@@ -200,7 +200,7 @@ public sealed class MediaSourceManagerDecorator(
                 GroupBySeriesPresentationUniqueKey = false,
                 CollapseBoxSetItems = false,
                 IsDeadPerson = true,
-                Tags = [GelatoManager.StreamTag],
+                Tags = [TorNadoManager.StreamTag],
                 IndexNumber = episode.IndexNumber,
             };
         }
@@ -218,20 +218,20 @@ public sealed class MediaSourceManagerDecorator(
                 GroupBySeriesPresentationUniqueKey = false,
                 CollapseBoxSetItems = false,
                 IsDeadPerson = true,
-                Tags = [GelatoManager.StreamTag],
+                Tags = [TorNadoManager.StreamTag],
             };
         }
 
-        var gelatoSources = repo.GetItemList(query)
+        var TorNadoSources = repo.GetItemList(query)
             .OfType<Video>()
             .Where(x =>
-                x.IsGelato()
+                x.IsTorNado()
                 && (
                     userId == Guid.Empty
-                    || (x.GelatoData<List<Guid>>("userIds")?.Contains(userId) ?? false)
+                    || (x.TorNadoData<List<Guid>>("userIds")?.Contains(userId) ?? false)
                 )
             )
-            .OrderBy(x => x.GelatoData<int?>("index") ?? int.MaxValue)
+            .OrderBy(x => x.TorNadoData<int?>("index") ?? int.MaxValue)
             .Select(s =>
             {
                 var k = GetVersionInfo(s, MediaSourceType.Grouping, user);
@@ -246,20 +246,20 @@ public sealed class MediaSourceManagerDecorator(
             .ToList();
 
         _log.LogDebug(
-            "Found {s} streams. UserId={Action} GelatoId={Uri}",
-            gelatoSources.Count,
+            "Found {s} streams. UserId={Action} TorNadoId={Uri}",
+            TorNadoSources.Count,
             userId,
             item.GetProviderId("Stremio")
         );
 
-        sources.AddRange(gelatoSources);
+        sources.AddRange(TorNadoSources);
 
         if (sources.Count > 1)
         {
             // remove primary from list when there are streams
             sources = sources
                 .Where(k =>
-                    !(k.Path?.StartsWith("gelato", StringComparison.OrdinalIgnoreCase) ?? false)
+                    !(k.Path?.StartsWith("TorNado", StringComparison.OrdinalIgnoreCase) ?? false)
                 )
                 .Where(k =>
                     !(k.Path?.StartsWith("stremio", StringComparison.OrdinalIgnoreCase) ?? false)
@@ -504,9 +504,9 @@ public sealed class MediaSourceManagerDecorator(
     {
         ArgumentNullException.ThrowIfNull(item);
 
-        var streamName = item.GelatoData<string>("name");
-        var streamDesc = item.GelatoData<string>("description");
-        var bingeGroup = item.GelatoData<string>("bingeGroup");
+        var streamName = item.TorNadoData<string>("name");
+        var streamDesc = item.TorNadoData<string>("description");
+        var bingeGroup = item.TorNadoData<string>("bingeGroup");
         var richName = !string.IsNullOrEmpty(streamDesc)
             ? $"{streamName}\n{streamDesc}"
             : streamName;
@@ -587,15 +587,15 @@ public sealed class MediaSourceManagerDecorator(
     {
         var streams = _inner.GetMediaStreams(item.Id).ToList();
 
-        var gelatoFilename = item.GelatoData<string>("filename");
-        if (string.IsNullOrEmpty(gelatoFilename))
+        var TorNadoFilename = item.TorNadoData<string>("filename");
+        if (string.IsNullOrEmpty(TorNadoFilename))
             return streams;
 
         var metaPath = item.GetInternalMetadataPath();
         if (!Directory.Exists(metaPath))
             return streams;
 
-        var baseName = Path.GetFileNameWithoutExtension(gelatoFilename);
+        var baseName = Path.GetFileNameWithoutExtension(TorNadoFilename);
         var existingPaths = new HashSet<string>(
             streams.Where(s => s.Path != null).Select(s => s.Path!),
             StringComparer.OrdinalIgnoreCase
@@ -648,9 +648,9 @@ public sealed class MediaSourceManagerDecorator(
 
     private async Task ProbeStreamAsync(Video owner, string streamUrl, CancellationToken ct)
     {
-        var gelatoFilename = owner.GelatoData<string>("filename");
-        var strmBaseName = !string.IsNullOrEmpty(gelatoFilename)
-            ? Path.GetFileNameWithoutExtension(gelatoFilename)
+        var TorNadoFilename = owner.TorNadoData<string>("filename");
+        var strmBaseName = !string.IsNullOrEmpty(TorNadoFilename)
+            ? Path.GetFileNameWithoutExtension(TorNadoFilename)
             : $"{owner.Id:N}";
         var tmpStrm = Path.Combine(Path.GetTempPath(), $"{strmBaseName}.strm");
         await File.WriteAllTextAsync(tmpStrm, streamUrl, ct).ConfigureAwait(false);
@@ -691,3 +691,4 @@ public sealed class MediaSourceManagerDecorator(
         }
     }
 }
+

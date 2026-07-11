@@ -1,28 +1,28 @@
 using System.Collections.Concurrent;
-using Gelato.Config;
-using Gelato.Services;
+using TorNado.Config;
+using TorNado.Services;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato;
+namespace TorNado;
 
-public class GelatoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
+public class TorNadoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
 {
-    private readonly ILogger<GelatoPlugin> _log;
-    private readonly GelatoManager _manager;
+    private readonly ILogger<TorNadoPlugin> _log;
+    private readonly TorNadoManager _manager;
     private ConcurrentDictionary<Guid, PluginConfiguration> UserConfigs { get; } = new();
-    private readonly GelatoStremioProviderFactory _stremioFactory;
+    private readonly TorNadoStremioProviderFactory _stremioFactory;
     public PalcoCacheService PalcoCache { get; } // Migrated Palco Cache Service
 
-    public GelatoPlugin(
+    public TorNadoPlugin(
         IApplicationPaths applicationPaths,
-        GelatoManager manager,
+        TorNadoManager manager,
         IXmlSerializer xmlSerializer,
-        ILogger<GelatoPlugin> log,
-        GelatoStremioProviderFactory stremioFactory,
+        ILogger<TorNadoPlugin> log,
+        TorNadoStremioProviderFactory stremioFactory,
         PalcoCacheService palcoCache
     )
         : base(applicationPaths, xmlSerializer)
@@ -34,14 +34,14 @@ public class GelatoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
         PalcoCache = palcoCache;
     }
 
-    public static GelatoPlugin? Instance { get; private set; }
+    public static TorNadoPlugin? Instance { get; private set; }
 
     // Event fired when the plugin configuration is updated via UpdateConfiguration
     public static new event Action<PluginConfiguration>? ConfigurationChanged;
 
-    public override string Name => "Gelato";
-    public override Guid Id => Guid.Parse("94EA4E14-8163-4989-96FE-0A2094BC2D6A");
-    public override string Description => "on-demand MediaSources and optional image suppression.";
+    public override string Name => "TorNado";
+    public override Guid Id => Guid.Parse("85EA4E14-8163-4989-96FE-0A2094BC2D6B");
+    public override string Description => "On-demand Usenet streams from TorBox Pro.";
 
     /// <inheritdoc />
     public IEnumerable<PluginPageInfo> GetPages()
@@ -112,3 +112,4 @@ public class GelatoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
         }
     }
 }
+

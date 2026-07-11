@@ -1,9 +1,9 @@
-using Gelato.Config;
-using Gelato.Decorators;
-using Gelato.Filters;
-using Gelato.Providers;
-using Gelato.ScheduledTasks;
-using Gelato.Services;
+using TorNado.Config;
+using TorNado.Decorators;
+using TorNado.Filters;
+using TorNado.Providers;
+using TorNado.ScheduledTasks;
+using TorNado.Services;
 //using IntroDbPlugin.Services;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Collections;
@@ -22,7 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato;
+namespace TorNado;
 
 public class ServiceRegistrator : IPluginServiceRegistrator
 {
@@ -34,43 +34,47 @@ public class ServiceRegistrator : IPluginServiceRegistrator
         services.AddSingleton<ImageResourceFilter>();
         services.AddSingleton<DeleteResourceFilter>();
         services.AddSingleton<DownloadFilter>();
-        services.AddSingleton<GelatoManager>();
-        services.DecorateSingle<IItemRepository, GelatoItemRepository>();
-        services.AddSingleton(sp => (GelatoItemRepository)sp.GetRequiredService<IItemRepository>());
-        services.AddSingleton<GelatoStremioProviderFactory>();
-        services.AddSingleton(sp => new Lazy<GelatoManager>(sp.GetRequiredService<GelatoManager>));
+        services.AddSingleton<TorNadoManager>();
+        services.DecorateSingle<IItemRepository, TorNadoItemRepository>();
+        services.AddSingleton(sp => (TorNadoItemRepository)sp.GetRequiredService<IItemRepository>());
+        services.AddSingleton<TorNadoStremioProviderFactory>();
+        services.AddSingleton(sp => new Lazy<TorNadoManager>(sp.GetRequiredService<TorNadoManager>));
         services.AddSingleton<CatalogService>();
         services.AddSingleton<CatalogImportService>();
         services.AddSingleton<PalcoCacheService>();
-        services.AddSingleton<IHostedService, GelatoJavaScriptRegistrationService>();
+        services.AddSingleton<IHostedService, TorNadoJavaScriptRegistrationService>();
         services.AddSingleton<SubtitleProvider>();
         services.AddSingleton<ISubtitleProvider>(sp => sp.GetRequiredService<SubtitleProvider>());
         services.AddSingleton(sp => new Lazy<SubtitleProvider>(
             sp.GetRequiredService<SubtitleProvider>
         ));
+        
+        // Register Clients
+        services.AddSingleton<TmdbClient>();
+        services.AddSingleton<TorBoxClient>();
 
         // Metadata providers
-        services.AddSingleton<GelatoSeriesProvider>();
+        services.AddSingleton<TorNadoSeriesProvider>();
         services.AddSingleton<IRemoteMetadataProvider>(sp =>
-            sp.GetRequiredService<GelatoSeriesProvider>()
+            sp.GetRequiredService<TorNadoSeriesProvider>()
         );
-        services.AddSingleton<GelatoMovieMetadataProvider>();
+        services.AddSingleton<TorNadoMovieMetadataProvider>();
         services.AddSingleton<IRemoteMetadataProvider>(sp =>
-            sp.GetRequiredService<GelatoMovieMetadataProvider>()
+            sp.GetRequiredService<TorNadoMovieMetadataProvider>()
         );
-        services.AddSingleton<GelatoEpisodeMetadataProvider>();
+        services.AddSingleton<TorNadoEpisodeMetadataProvider>();
         services.AddSingleton<IRemoteMetadataProvider>(sp =>
-            sp.GetRequiredService<GelatoEpisodeMetadataProvider>()
+            sp.GetRequiredService<TorNadoEpisodeMetadataProvider>()
         );
-        services.AddSingleton<GelatoSeasonMetadataProvider>();
+        services.AddSingleton<TorNadoSeasonMetadataProvider>();
         services.AddSingleton<IRemoteMetadataProvider>(sp =>
-            sp.GetRequiredService<GelatoSeasonMetadataProvider>()
+            sp.GetRequiredService<TorNadoSeasonMetadataProvider>()
         );
 
         // Image provider
-        services.AddSingleton<GelatoImageProvider>();
+        services.AddSingleton<TorNadoImageProvider>();
         services.AddSingleton<IRemoteImageProvider>(sp =>
-            sp.GetRequiredService<GelatoImageProvider>()
+            sp.GetRequiredService<TorNadoImageProvider>()
         );
 
         // Register HttpClient for IntroDbClient
@@ -81,7 +85,7 @@ public class ServiceRegistrator : IPluginServiceRegistrator
         });
         services.AddSingleton<IMediaSegmentProvider, IntroDbSegmentProvider>();
 
-        services.AddHostedService<GelatoService>();
+        services.AddHostedService<TorNadoService>();
         services
             .DecorateSingle<IDtoService, DtoServiceDecorator>()
             .DecorateSingle<IMediaSourceManager, MediaSourceManagerDecorator>()
@@ -111,18 +115,18 @@ public class ServiceRegistrator : IPluginServiceRegistrator
         });
     }
 
-    public class GelatoService(IConfiguration config, ILogger<GelatoService> log) : IHostedService
+    public class TorNadoService(IConfiguration config, ILogger<TorNadoService> log) : IHostedService
     {
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            var analyze = GelatoPlugin.Instance?.Configuration?.FFmpegAnalyzeDuration ?? "5M";
-            var probe = GelatoPlugin.Instance?.Configuration?.FFmpegProbeSize ?? "40M";
+            var analyze = TorNadoPlugin.Instance?.Configuration?.FFmpegAnalyzeDuration ?? "5M";
+            var probe = TorNadoPlugin.Instance?.Configuration?.FFmpegProbeSize ?? "40M";
 
             config["FFmpeg:probesize"] = probe;
             config["FFmpeg:analyzeduration"] = analyze;
 
             log.LogInformation(
-                "Gelato: set FFmpeg:probesize={Probe}, FFmpeg:analyzeduration={Analyze}",
+                "TorNado: set FFmpeg:probesize={Probe}, FFmpeg:analyzeduration={Analyze}",
                 probe,
                 analyze
             );
@@ -170,3 +174,4 @@ public static class ServiceCollectionDecorationExtensions
         return services;
     }
 }
+

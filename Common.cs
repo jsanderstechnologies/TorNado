@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Gelato;
+namespace TorNado;
 
 public sealed class StremioUri
 {
@@ -485,7 +485,7 @@ public static class ActionContextExtensions
 
 public static class BaseItemExtensions
 {
-    public static bool IsGelato(this BaseItem item)
+    public static bool IsTorNado(this BaseItem item)
     {
         return !string.IsNullOrWhiteSpace(item.GetProviderId("Stremio"));
     }
@@ -493,7 +493,7 @@ public static class BaseItemExtensions
     public static bool HasStreamTag(this BaseItem item)
     {
         return item.Tags is not null
-            && item.Tags.Contains(GelatoManager.StreamTag, StringComparer.OrdinalIgnoreCase);
+            && item.Tags.Contains(TorNadoManager.StreamTag, StringComparer.OrdinalIgnoreCase);
     }
 
     public static bool IsPrimaryVersion(this BaseItem item)
@@ -509,7 +509,7 @@ public static class BaseItemExtensions
             && !item.IsPrimaryVersion();
     }
 
-    public static T? GelatoData<T>(this BaseItem item, string key)
+    public static T? TorNadoData<T>(this BaseItem item, string key)
     {
         if (string.IsNullOrEmpty(item.ExternalId))
             return default;
@@ -527,7 +527,7 @@ public static class BaseItemExtensions
         }
     }
 
-    public static void SetGelatoData<T>(this BaseItem item, string key, T value)
+    public static void SetTorNadoData<T>(this BaseItem item, string key, T value)
     {
         Dictionary<string, JsonElement> data;
 
@@ -554,3 +554,4 @@ public static class StringExtensions
         s.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
         || s.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
 }
+

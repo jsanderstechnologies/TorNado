@@ -9,22 +9,22 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Providers;
+namespace TorNado.Providers;
 
-public sealed class GelatoSeriesProvider : IRemoteMetadataProvider<Series, SeriesInfo>, IHasOrder
+public sealed class TorNadoSeriesProvider : IRemoteMetadataProvider<Series, SeriesInfo>, IHasOrder
 {
-    private readonly ILogger<GelatoSeriesProvider> _log;
+    private readonly ILogger<TorNadoSeriesProvider> _log;
     private readonly ILibraryManager _libraryManager;
-    private readonly GelatoManager _manager;
+    private readonly TorNadoManager _manager;
     private readonly IProviderManager _provider;
     private readonly ConcurrentDictionary<Guid, DateTime> _syncCache = new();
     private static readonly TimeSpan CacheExpiry = TimeSpan.FromMinutes(2);
 
-    public GelatoSeriesProvider(
-        ILogger<GelatoSeriesProvider> logger,
+    public TorNadoSeriesProvider(
+        ILogger<TorNadoSeriesProvider> logger,
         ILibraryManager libraryManager,
         IProviderManager provider,
-        GelatoManager manager
+        TorNadoManager manager
     )
     {
         _log = logger;
@@ -35,7 +35,7 @@ public sealed class GelatoSeriesProvider : IRemoteMetadataProvider<Series, Serie
         _provider.RefreshStarted += OnProviderManagerRefreshStarted;
     }
 
-    public string Name => "Gelato";
+    public string Name => "TorNado";
 
     public int Order => 0;
 
@@ -46,17 +46,17 @@ public sealed class GelatoSeriesProvider : IRemoteMetadataProvider<Series, Serie
         GenericEventArgs<BaseItem> genericEventArgs
     )
     {
-        var cfg = GelatoPlugin.Instance!.GetConfig(Guid.Empty);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(Guid.Empty);
         var stremio = cfg.Stremio;
         if (stremio == null)
         {
-            _log.LogWarning("Gelato not configured (stremio provider missing); skipping refresh.");
+            _log.LogWarning("TorNado not configured (stremio provider missing); skipping refresh.");
             return;
         }
 
         if (!await stremio.IsReady().ConfigureAwait(false))
         {
-            _log.LogWarning("Gelato is not ready");
+            _log.LogWarning("TorNado is not ready");
             return;
         }
 
@@ -96,12 +96,12 @@ public sealed class GelatoSeriesProvider : IRemoteMetadataProvider<Series, Serie
         // Update cache before syncing
         _syncCache[series.Id] = now;
 
-        var isLocal = !series.IsGelato();
+        var isLocal = !series.IsTorNado();
 
         if (isLocal && !cfg.ExtendLocalSeriesTrees)
             return;
 
-        // Guard against race condition: RefreshStarted fires inside RefreshMetadata (GelatoManager.cs:692)
+        // Guard against race condition: RefreshStarted fires inside RefreshMetadata (TorNadoManager.cs:692)
         // before AddChild/UpdateToRepositoryAsync persist the stub (lines 693-694). If Stremio metadata
         // is cached the handler can complete and create a duplicate before the original is saved.
         if (_libraryManager.GetItemById(series.Id) is null)
@@ -142,11 +142,11 @@ public sealed class GelatoSeriesProvider : IRemoteMetadataProvider<Series, Serie
         var id = ResolveId(info.ProviderIds);
         if (id is null)
         {
-            _log.LogDebug("GelatoSeriesProvider: no usable ID for {Name}", info.Name);
+            _log.LogDebug("TorNadoSeriesProvider: no usable ID for {Name}", info.Name);
             return result;
         }
 
-        var stremio = GelatoPlugin.Instance?.Configuration.Stremio;
+        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
         if (stremio is null)
             return result;
 
@@ -157,7 +157,7 @@ public sealed class GelatoSeriesProvider : IRemoteMetadataProvider<Series, Serie
         }
         catch (Exception ex)
         {
-            _log.LogWarning(ex, "GelatoSeriesProvider: failed to fetch meta for {Id}", id);
+            _log.LogWarning(ex, "TorNadoSeriesProvider: failed to fetch meta for {Id}", id);
             return result;
         }
 
@@ -179,7 +179,7 @@ public sealed class GelatoSeriesProvider : IRemoteMetadataProvider<Series, Serie
         CancellationToken cancellationToken
     )
     {
-        var stremio = GelatoPlugin.Instance?.Configuration.Stremio;
+        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
         if (stremio is null || string.IsNullOrWhiteSpace(searchInfo.Name))
             return [];
 
@@ -192,7 +192,7 @@ public sealed class GelatoSeriesProvider : IRemoteMetadataProvider<Series, Serie
         }
         catch (Exception ex)
         {
-            _log.LogWarning(ex, "GelatoSeriesProvider: search failed for {Name}", searchInfo.Name);
+            _log.LogWarning(ex, "TorNadoSeriesProvider: search failed for {Name}", searchInfo.Name);
             return [];
         }
     }
@@ -328,3 +328,4 @@ public sealed class GelatoSeriesProvider : IRemoteMetadataProvider<Series, Serie
             ?? false;
     }
 }
+

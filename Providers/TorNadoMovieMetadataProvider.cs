@@ -1,4 +1,4 @@
-using Gelato.Config;
+using TorNado.Config;
 using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
@@ -7,14 +7,14 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Providers;
+namespace TorNado.Providers;
 
-public sealed class GelatoMovieMetadataProvider(
-    ILogger<GelatoMovieMetadataProvider> log,
-    GelatoManager manager
+public sealed class TorNadoMovieMetadataProvider(
+    ILogger<TorNadoMovieMetadataProvider> log,
+    TorNadoManager manager
 ) : IRemoteMetadataProvider<Movie, MovieInfo>, IHasOrder
 {
-    public string Name => "Gelato";
+    public string Name => "TorNado";
     public int Order => 0;
 
     public async Task<MetadataResult<Movie>> GetMetadata(
@@ -27,7 +27,7 @@ public sealed class GelatoMovieMetadataProvider(
         var id = ResolveId(info.ProviderIds);
         if (id is null)
         {
-            log.LogDebug("GelatoMovieMetadataProvider: no usable ID for {Name}", info.Name);
+            log.LogDebug("TorNadoMovieMetadataProvider: no usable ID for {Name}", info.Name);
             return result;
         }
 
@@ -42,7 +42,7 @@ public sealed class GelatoMovieMetadataProvider(
         }
         catch (Exception ex)
         {
-            log.LogWarning(ex, "GelatoMovieMetadataProvider: failed to fetch meta for {Id}", id);
+            log.LogWarning(ex, "TorNadoMovieMetadataProvider: failed to fetch meta for {Id}", id);
             return result;
         }
 
@@ -81,7 +81,7 @@ public sealed class GelatoMovieMetadataProvider(
         {
             log.LogWarning(
                 ex,
-                "GelatoMovieMetadataProvider: search failed for {Name}",
+                "TorNadoMovieMetadataProvider: search failed for {Name}",
                 searchInfo.Name
             );
             return [];
@@ -189,6 +189,7 @@ public sealed class GelatoMovieMetadataProvider(
         return null;
     }
 
-    private static GelatoStremioProvider? GetStremio() =>
-        GelatoPlugin.Instance?.Configuration.Stremio;
+    private static TorNadoStremioProvider? GetStremio() =>
+        TorNadoPlugin.Instance?.Configuration.Stremio;
 }
+

@@ -4,17 +4,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gelato</title>
+  <title>TorNado</title>
 </head>
 
 <body>
-  <div data-role="page" id="gelatoConfigurationPage" class="page type-interior pluginConfigurationPage">
+  <div data-role="page" id="tornadoConfigurationPage" class="page type-interior pluginConfigurationPage">
     <div data-role="content">
       <div class="content-primary">
-        <form id="gelatoForm">
+        <form id="tornadoForm">
           <div class="verticalSection">
             <div class="sectionTitleContainer flex align-items-center">
-              <h2 class="sectionTitle">Gelato Configuration</h2>
+              <h2 class="sectionTitle">TorNado Configuration</h2>
             </div>
           </div>
 
@@ -24,8 +24,6 @@
               style="display: flex; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 2em; gap: 2em;">
               <button type="button" class="paper-icon-button-light tab-button active" data-tab="general"
                 style="padding: 0.5em 0; border-bottom: 2px solid #00a4dc; cursor: pointer; background: none; color: inherit; font-weight: bold; opacity: 1;">General</button>
-              <button type="button" class="paper-icon-button-light tab-button" data-tab="catalogs"
-                style="padding: 0.5em 0; border-bottom: 2px solid transparent; cursor: pointer; background: none; color: inherit; font-weight: bold; opacity: 0.6;">Catalogs</button>
               <button type="button" class="paper-icon-button-light tab-button" data-tab="userconfigs"
                 style="padding: 0.5em 0; border-bottom: 2px solid transparent; cursor: pointer; background: none; color: inherit; font-weight: bold; opacity: 0.6;">User Configs</button>
               <button type="button" class="paper-icon-button-light tab-button" data-tab="advanced"
@@ -38,10 +36,21 @@
             <h3 class="sectionTitle">General Settings</h3>
 
             <div class="inputContainer">
-              <label class="inputLabel inputLabelUnfocused" for="txtUrl">AIOStreams URL (manifest or base):</label>
-              <input is="emby-input" type="text" id="txtUrl" required="required" class="emby-input" />
-              <div class="fieldDescription">Paste the manifest URL or base endpoint. <code>GetBaseUrl()</code> will
-                strip <code>/manifest.json</code> automatically.</div>
+              <label class="inputLabel inputLabelUnfocused" for="txtTmdbApiKey">TMDB API Key:</label>
+              <input is="emby-input" type="text" id="txtTmdbApiKey" required="required" class="emby-input" />
+              <div class="fieldDescription">API Key used for searching metadata on TMDB.</div>
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="txtTorBoxApiKey">TorBox Pro API Key:</label>
+              <input is="emby-input" type="text" id="txtTorBoxApiKey" required="required" class="emby-input" />
+              <div class="fieldDescription">API Key for accessing TorBox Usenet network.</div>
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="txtTorBoxUsenetServer">TorBox Usenet Server (Newznab):</label>
+              <input is="emby-input" type="text" id="txtTorBoxUsenetServer" required="required" class="emby-input" />
+              <div class="fieldDescription">Defaults to <code>https://search-api.torbox.app/newznab</code>.</div>
             </div>
 
             <div class="inputContainer">
@@ -206,11 +215,6 @@
             <div id="userOverrideContainer"
               style="display:none; margin-top:1em; padding: 1em; background: rgba(0,0,0,0.1); border-radius: 4px;">
               <div class="inputContainer">
-                <label class="inputLabel" for="txtUserUrl">AIOStreams URL:</label>
-                <input is="emby-input" type="text" id="txtUserUrl" class="emby-input" />
-              </div>
-
-              <div class="inputContainer">
                 <label class="inputLabel" for="txtUserMoviePath">Movie path:</label>
                 <input is="emby-input" type="text" id="txtUserMoviePath" class="emby-input" />
               </div>
@@ -247,12 +251,11 @@
 
     <script type="text/javascript">
       (function () {
-        const pluginId = "94EA4E14-8163-4989-96FE-0A2094BC2D6A";
+        const pluginId = "85EA4E14-8163-4989-96FE-0A2094BC2D6B";
         const guidRegex = /^[0-9a-f]{32}$/i;
-        // Unique ID for this IIFE instance to prevent collisions if multiple loaded
-        const pageId = "gelatoConfigurationPage";
+        const pageId = "tornadoConfigurationPage";
         const page = document.querySelector('#' + pageId);
-        const form = document.querySelector('#gelatoForm');
+        const form = document.querySelector('#tornadoForm');
 
         // Tab Logic
         const tabs = page.querySelectorAll('.tab-button');
@@ -260,7 +263,6 @@
 
         tabs.forEach(tab => {
           tab.addEventListener('click', () => {
-            // Deactivate all
             tabs.forEach(t => {
               t.classList.remove('active');
               t.style.borderBottom = '2px solid transparent';
@@ -268,25 +270,19 @@
             });
             tabContents.forEach(c => c.style.display = 'none');
 
-            // Activate clicked
             tab.classList.add('active');
             tab.style.borderBottom = '2px solid #00a4dc'; // Jellyfin Blue
             tab.style.opacity = '1';
 
             const targetId = 'tab-' + tab.dataset.tab;
             page.querySelector('#' + targetId).style.display = 'block';
-
-            // Lazy load catalogs if switching to catalogs tab
-            if (tab.dataset.tab === 'catalogs') {
-              // Always refresh display on switch
-              renderCatalogs();
-              if (allCatalogs.length === 0) loadCatalogs();
-            }
           });
         });
 
         // Elements
-        const txtUrl = page.querySelector('#txtUrl');
+        const txtTmdbApiKey = page.querySelector('#txtTmdbApiKey');
+        const txtTorBoxApiKey = page.querySelector('#txtTorBoxApiKey');
+        const txtTorBoxUsenetServer = page.querySelector('#txtTorBoxUsenetServer');
         const txtMoviePath = page.querySelector('#txtMoviePath');
         const txtSeriesPath = page.querySelector('#txtSeriesPath');
 
@@ -301,17 +297,10 @@
         const chkEnableJavaScriptInjection = page.querySelector('#chkEnableJavaScriptInjection');
         const chkLazyImages = page.querySelector('#chkLazyImages');
 
-        // Catalogs
-        const catalogsList = page.querySelector('#catalogsList');
-        const txtCatalogSearch = page.querySelector('#txtCatalogSearch');
-        const btnRefreshCatalogs = page.querySelector('#btnRefreshCatalogs');
-        let allCatalogs = [];
-
         // Overrides
         const selUserConfig = page.querySelector('#selUserConfig');
         const userOverrideContainer = page.querySelector('#userOverrideContainer');
         const userOverridesList = page.querySelector('#userOverridesList');
-        const txtUserUrl = page.querySelector('#txtUserUrl');
         const txtUserMoviePath = page.querySelector('#txtUserMoviePath');
         const txtUserSeriesPath = page.querySelector('#txtUserSeriesPath');
         const chkUserDisableSearch = page.querySelector('#chkUserDisableSearch');
@@ -324,7 +313,6 @@
           (arr || []).forEach(uc => {
             if (uc.UserId && guidRegex.test(uc.UserId)) {
               obj[uc.UserId] = {
-                Url: uc.Url,
                 MoviePath: uc.MoviePath,
                 SeriesPath: uc.SeriesPath,
                 DisableSearch: uc.DisableSearch,
@@ -333,246 +321,6 @@
           });
           return obj;
         }
-        async function loadCatalogs() {
-          try {
-            // Show loading spinner in list
-            catalogsList.innerHTML = '<div style="padding: 2em; text-align: center;"><div class="mdl-spinner mdl-js-spinner is-active"></div><p>Loading catalogs...</p></div>';
-
-            // Get current configuration to preserve user settings
-            const cfg = await window.ApiClient.getPluginConfiguration(pluginId);
-            const savedCatalogs = cfg.Catalogs || [];
-
-            const response = await window.ApiClient.getJSON(window.ApiClient.getUrl('gelato/catalogs'));
-            
-            // Merge server catalogs with saved user preferences
-            allCatalogs = (response || []).map(serverCat => {
-              // Find matching saved catalog
-              const savedCat = savedCatalogs.find(s => s.Id === serverCat.Id && s.Type === serverCat.Type);
-              
-              return {
-                Id: serverCat.Id || '',
-                Type: serverCat.Type || '',
-                Name: serverCat.Name || '',
-                // Use saved user preference if available, otherwise use server default
-                Enabled: savedCat ? savedCat.Enabled : (serverCat.Enabled || false),
-                MaxItems: savedCat ? savedCat.MaxItems : (serverCat.MaxItems || 0),
-                CreateCollection: savedCat ? savedCat.CreateCollection : (serverCat.CreateCollection || false),
-                Url: serverCat.Url || ''
-              };
-            });
-            
-            renderCatalogs();
-          } catch (e) {
-            console.error('Error loading catalogs:', e);
-            catalogsList.innerHTML = '<p style="color:red; padding: 1em;">Error loading catalogs. Check logs.</p>';
-          }
-        }
-
-        function renderCatalogs() {
-          catalogsList.innerHTML = '';
-          const searchTerm = (txtCatalogSearch.value || '').toLowerCase();
-
-          const filtered = allCatalogs.filter(cat =>
-            (cat.Name || '').toLowerCase().includes(searchTerm) ||
-            (cat.Type || '').toLowerCase().includes(searchTerm)
-          );
-
-          if (filtered.length === 0) {
-            if (allCatalogs.length === 0) {
-              // Not loaded yet or empty manifest
-            } else {
-              catalogsList.innerHTML = '<p style="padding: 1em; text-align: center; opacity: 0.7;">No matching catalogs found.</p>';
-              return;
-            }
-          }
-
-          if (allCatalogs.length === 0) return; // Wait for load
-
-          const table = document.createElement('table');
-          table.classList.add('table', 'detailTable');
-          table.style.width = '100%';
-          table.style.textAlign = 'left';
-          table.style.borderCollapse = 'collapse';
-
-          const header = document.createElement('tr');
-          header.style.backgroundColor = 'rgba(0,0,0,0.3)';
-          header.innerHTML = `
-                <th style="padding: 10px;">Name</th>
-                <th style="padding: 10px;">Type</th>
-                <th style="padding: 10px;">Enabled</th>
-                <th style="padding: 10px;">Collection</th>
-                <th style="padding: 10px;">Max items</th>
-                <th style="padding: 10px;">Actions</th>
-            `;
-          table.appendChild(header);
-
-          filtered.forEach(cat => {
-            const row = document.createElement('tr');
-            row.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-
-            // Name
-            const nameCell = document.createElement('td');
-            nameCell.style.padding = '10px';
-            nameCell.textContent = cat.Name;
-            row.appendChild(nameCell);
-
-            // Type
-            const typeCell = document.createElement('td');
-            typeCell.style.padding = '10px';
-            typeCell.innerHTML = '<span style="padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); font-size: 0.9em;">' + cat.Type + '</span>';
-            row.appendChild(typeCell);
-
-            // Enabled
-            const enabledCell = document.createElement('td');
-            enabledCell.style.padding = '10px';
-            const enabledCheck = document.createElement('input');
-            enabledCheck.type = 'checkbox';
-            enabledCheck.checked = cat.Enabled;
-            enabledCheck.is = 'emby-checkbox';
-            enabledCheck.dataset.catalogId = cat.Id;
-            enabledCheck.dataset.catalogType = cat.Type;
-            enabledCheck.dataset.field = 'Enabled';
-            enabledCell.appendChild(enabledCheck);
-            row.appendChild(enabledCell);
-
-            // Create Collection
-            const collCell = document.createElement('td');
-            collCell.style.padding = '10px';
-            const collCheck = document.createElement('input');
-            collCheck.type = 'checkbox';
-            collCheck.checked = cat.CreateCollection;
-            collCheck.disabled = !cat.Enabled;
-            collCheck.style.opacity = cat.Enabled ? '1' : '0.45';
-            collCheck.is = 'emby-checkbox';
-            collCheck.dataset.catalogId = cat.Id;
-            collCheck.dataset.catalogType = cat.Type;
-            collCheck.dataset.field = 'CreateCollection';
-            collCell.appendChild(collCheck);
-            row.appendChild(collCell);
-
-            // Items per catalog
-            const maxCell = document.createElement('td');
-            maxCell.style.padding = '10px';
-            const maxInput = document.createElement('input');
-            maxInput.type = 'number';
-            maxInput.value = cat.MaxItems > 0 ? cat.MaxItems : 100;
-            maxInput.disabled = !cat.Enabled;
-            maxInput.style.width = '70px';
-            maxInput.style.opacity = cat.Enabled ? '1' : '0.45';
-            maxInput.is = 'emby-input';
-            maxInput.classList.add('emby-input');
-            maxInput.style.padding = '4px';
-            maxInput.dataset.catalogId = cat.Id;
-            maxInput.dataset.catalogType = cat.Type;
-            maxInput.dataset.field = 'MaxItems';
-
-            maxCell.appendChild(maxInput);
-            row.appendChild(maxCell);
-
-            // Actions
-            const actionCell = document.createElement('td');
-            actionCell.style.padding = '10px';
-
-            const importBtn = document.createElement('button');
-            importBtn.type = 'button';
-            importBtn.textContent = 'Import';
-            importBtn.className = 'raised emby-button';
-            importBtn.is = 'emby-button';
-            importBtn.style.background = '#00a4dc';
-            importBtn.style.color = '#fff';
-            importBtn.style.padding = '0.3em 0.8em';
-            importBtn.disabled = !cat.Enabled;
-            importBtn.style.opacity = cat.Enabled ? '1' : '0.45';
-            importBtn.onclick = async () => {
-              await triggerImport(cat);
-            };
-
-            // Toggle all row controls when Enabled changes
-            enabledCheck.addEventListener('change', () => {
-              const on = enabledCheck.checked;
-              maxInput.disabled = !on;
-              maxInput.style.opacity = on ? '1' : '0.45';
-              collCheck.disabled = !on;
-              collCheck.style.opacity = on ? '1' : '0.45';
-              importBtn.disabled = !on;
-              importBtn.style.opacity = on ? '1' : '0.45';
-            });
-
-            actionCell.appendChild(importBtn);
-            row.appendChild(actionCell);
-            table.appendChild(row);
-          });
-
-          catalogsList.appendChild(table);
-        }
-
-        async function updateCatalogConfig(cat) {
-          Dashboard.showLoadingMsg();
-          try {
-            const url = window.ApiClient.getUrl('gelato/catalogs/' + encodeURIComponent(cat.Id) + '/' + encodeURIComponent(cat.Type) + '/config');
-            await window.ApiClient.ajax({
-              type: "POST",
-              url: url,
-              data: JSON.stringify(cat),
-              contentType: 'application/json'
-            });
-          } catch (e) {
-            console.error(e);
-            Dashboard.alert("Error saving catalog config.");
-          } finally {
-            Dashboard.hideLoadingMsg();
-          }
-        }
-
-        function collectCatalogStatesFromDOM() {
-          const rows = catalogsList.querySelectorAll('tr');
-          rows.forEach(row => {
-            const enabledCheck = row.querySelector('input[data-field="Enabled"]');
-            const collCheck = row.querySelector('input[data-field="CreateCollection"]');
-            const maxInput = row.querySelector('input[data-field="MaxItems"]');
-            if (!enabledCheck || !collCheck || !maxInput) return;
-
-            const catId = enabledCheck.dataset.catalogId;
-            const catType = enabledCheck.dataset.catalogType;
-            const cat = allCatalogs.find(c => c.Id === catId && c.Type === catType);
-            if (!cat) return;
-
-            cat.Enabled = enabledCheck.checked;
-            cat.CreateCollection = collCheck.checked;
-            cat.MaxItems = parseInt(maxInput.value) || 0;
-          });
-        }
-
-        async function triggerImport(cat) {
-          if (!confirm('Start import for ' + cat.Name + '?')) return;
-          Dashboard.showLoadingMsg();
-          try {
-            // FIXED: Use string concatenation
-            const url = window.ApiClient.getUrl('gelato/catalogs/' + encodeURIComponent(cat.Id) + '/' + encodeURIComponent(cat.Type) + '/import');
-            await window.ApiClient.ajax({ type: "POST", url: url });
-            Dashboard.alert("Import started.");
-          } catch (e) {
-            console.error(e);
-            Dashboard.alert("Error starting import.");
-          } finally {
-            Dashboard.hideLoadingMsg();
-          }
-        }
-
-        async function triggerImportAll() {
-          if (!confirm('Start import?')) return;
-          Dashboard.showLoadingMsg();
-          try {
-            const url = window.ApiClient.getUrl('gelato/catalogs/import-all');
-            await window.ApiClient.ajax({ type: "POST", url: url });
-            Dashboard.alert("Global import started in background.");
-          } catch (e) {
-            console.error(e);
-            Dashboard.alert("Error starting global import.");
-          } finally {
-            Dashboard.hideLoadingMsg();
-          }
-        }
 
         async function loadConfig() {
           Dashboard.showLoadingMsg();
@@ -580,8 +328,11 @@
             const cfg = await window.ApiClient.getPluginConfiguration(pluginId);
             cfg.UserConfigs = userConfigsArrayToObject(cfg.UserConfigs);
             currentConfig = cfg;
+            
             // Populate fields
-            if (txtUrl) txtUrl.value = cfg.Url || "";
+            if (txtTmdbApiKey) txtTmdbApiKey.value = cfg.TmdbApiKey || "";
+            if (txtTorBoxApiKey) txtTorBoxApiKey.value = cfg.TorBoxApiKey || "";
+            if (txtTorBoxUsenetServer) txtTorBoxUsenetServer.value = cfg.TorBoxUsenetServer || "https://search-api.torbox.app/newznab";
             if (txtMoviePath) txtMoviePath.value = cfg.MoviePath || "";
             if (txtSeriesPath) txtSeriesPath.value = cfg.SeriesPath || "";
             if (txtStreamTTL) txtStreamTTL.value = cfg.StreamTTL || 3600;
@@ -611,11 +362,12 @@
           Dashboard.showLoadingMsg();
           try {
             const cfg = await window.ApiClient.getPluginConfiguration(pluginId);
-            cfg.Url = txtUrl.value.trim();
+            cfg.TmdbApiKey = txtTmdbApiKey.value.trim();
+            cfg.TorBoxApiKey = txtTorBoxApiKey.value.trim();
+            cfg.TorBoxUsenetServer = txtTorBoxUsenetServer.value.trim();
             cfg.MoviePath = txtMoviePath.value.trim();
             cfg.SeriesPath = txtSeriesPath.value.trim();
 
-            
             // Stream TTL
             cfg.StreamTTL = parseInt(txtStreamTTL.value) || 3600;
             cfg.EnableMixed = chkEnableMixed.checked;
@@ -630,22 +382,10 @@
             cfg.EnableJavaScriptInjection = chkEnableJavaScriptInjection.checked;
             cfg.LazyImages = chkLazyImages.checked;
 
-            // Only collect catalog states if catalogs have been loaded (i.e., if we're on catalogs tab or it was loaded)
-            if (allCatalogs.length > 0) {
-              collectCatalogStatesFromDOM();
-              cfg.Catalogs = allCatalogs;
-            } else {
-              // If catalogs haven't been loaded, keep the existing catalog configuration
-              // This prevents overwriting catalog settings when saving from other tabs
-              cfg.Catalogs = cfg.Catalogs || [];
-            }
-
             // Handle User Configs
-            // Use currentConfig.UserConfigs which contains any unsaved user overrides
             const userConfigsObj = (currentConfig && currentConfig.UserConfigs) || {};
             cfg.UserConfigs = Object.entries(userConfigsObj).map(([userId, override]) => ({
               UserId: userId,
-              Url: override.Url,
               MoviePath: override.MoviePath,
               SeriesPath: override.SeriesPath,
               DisableSearch: override.DisableSearch
@@ -655,7 +395,6 @@
 
             // Update local currentConfig to match
             currentConfig = cfg;
-            // Re-hydrate the object form of UserConfigs for local editing
             currentConfig.UserConfigs = userConfigsArrayToObject(cfg.UserConfigs);
 
             Dashboard.processPluginConfigurationUpdateResult();
@@ -745,13 +484,11 @@
 
           const override = currentConfig?.UserConfigs?.[userId];
           if (override) {
-            txtUserUrl.value = override.Url || '';
             txtUserMoviePath.value = override.MoviePath || '';
             txtUserSeriesPath.value = override.SeriesPath || '';
             chkUserDisableSearch.checked = override.DisableSearch || false;
           } else {
             // New
-            txtUserUrl.value = currentConfig?.Url || '';
             txtUserMoviePath.value = currentConfig?.MoviePath || '';
             txtUserSeriesPath.value = currentConfig?.SeriesPath || '';
             chkUserDisableSearch.checked = false;
@@ -769,7 +506,6 @@
           if (!currentConfig.UserConfigs) currentConfig.UserConfigs = {};
 
           currentConfig.UserConfigs[userId] = {
-            Url: txtUserUrl.value.trim(),
             MoviePath: txtUserMoviePath.value.trim(),
             SeriesPath: txtUserSeriesPath.value.trim(),
             DisableSearch: chkUserDisableSearch.checked
@@ -782,12 +518,8 @@
 
         function init() {
           form.addEventListener("submit", saveConfig);
-          txtCatalogSearch.addEventListener('input', renderCatalogs);
-          btnRefreshCatalogs.addEventListener('click', loadCatalogs);
-          page.querySelector('#btnImportAll').addEventListener('click', triggerImportAll);
           selUserConfig.addEventListener('change', onUserSelected);
 
-          // Tab 1 active by default
           const startTab = page.querySelector('.tab-button[data-tab="general"]');
           if (startTab) startTab.click();
 

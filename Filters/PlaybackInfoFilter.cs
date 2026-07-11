@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Gelato.Filters;
+namespace TorNado.Filters;
 
 /// <summary>
 /// Captures media source id for playback request and save it for later reuse.
@@ -124,3 +124,4 @@ public sealed class PlaybackInfoFilter : IAsyncActionFilter, IOrderedFilter
         return false;
     }
 }
+

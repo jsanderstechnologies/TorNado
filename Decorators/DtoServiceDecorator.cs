@@ -7,12 +7,12 @@ using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using Microsoft.AspNetCore.Http;
 
-namespace Gelato.Decorators;
+namespace TorNado.Decorators;
 
-public sealed class DtoServiceDecorator(IDtoService inner, Lazy<GelatoManager> manager, IHttpContextAccessor http)
+public sealed class DtoServiceDecorator(IDtoService inner, Lazy<TorNadoManager> manager, IHttpContextAccessor http)
     : IDtoService
 {
-    private readonly Lazy<GelatoManager> _manager = manager;
+    private readonly Lazy<TorNadoManager> _manager = manager;
     private readonly IHttpContextAccessor _http = http;
 
     public double? GetPrimaryImageAspectRatio(BaseItem item) =>
@@ -65,7 +65,7 @@ public sealed class DtoServiceDecorator(IDtoService inner, Lazy<GelatoManager> m
         return dto;
     }
 
-    static bool IsGelato(BaseItemDto dto)
+    static bool IsTorNado(BaseItemDto dto)
     {
         return dto.LocationType == LocationType.Remote
             && (
@@ -79,12 +79,12 @@ public sealed class DtoServiceDecorator(IDtoService inner, Lazy<GelatoManager> m
     private void Patch(BaseItemDto dto, BaseItem? item, bool isList, User? user)
     {
         var manager = _manager.Value;
-        if (item is not null && user is not null && IsGelato(dto) && manager.CanDelete(item, user))
+        if (item is not null && user is not null && IsTorNado(dto) && manager.CanDelete(item, user))
         {
             dto.CanDelete = true;
         }
 
-        if (IsGelato(dto))
+        if (IsTorNado(dto))
         {
             if (dto.Path is not null && dto.Path.IsUrl())
             {
@@ -100,7 +100,7 @@ public sealed class DtoServiceDecorator(IDtoService inner, Lazy<GelatoManager> m
                 || dto.MediaSources?.Length != 1
                 || dto.Path is null
                 || !dto.MediaSources[0]
-                    .Path.StartsWith("gelato", StringComparison.OrdinalIgnoreCase)
+                    .Path.StartsWith("TorNado", StringComparison.OrdinalIgnoreCase)
             )
             {
                 if (dto.MediaSources != null)
@@ -121,3 +121,4 @@ public sealed class DtoServiceDecorator(IDtoService inner, Lazy<GelatoManager> m
         }
     }
 }
+

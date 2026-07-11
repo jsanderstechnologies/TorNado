@@ -18,7 +18,7 @@ using MediaBrowser.Model.Querying;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Providers
+namespace TorNado.Providers
 {
     public sealed class SubtitleProvider : ISubtitleProvider
     {
@@ -43,7 +43,7 @@ namespace Gelato.Providers
             _library = library;
         }
 
-        public string Name => "Gelato Subtitles";
+        public string Name => "TorNado Subtitles";
 
         public IEnumerable<VideoContentType> SupportedMediaTypes =>
             new[] { VideoContentType.Movie, VideoContentType.Episode };
@@ -73,7 +73,7 @@ namespace Gelato.Providers
 
             _log.LogDebug("Subtitle list cache MISS key={Key}", listKey);
 
-            var cfg = GelatoPlugin.Instance!.GetConfig(Guid.Empty);
+            var cfg = TorNadoPlugin.Instance!.GetConfig(Guid.Empty);
             var subs = await cfg.Stremio!.GetSubtitlesAsync(id, mediaType).ConfigureAwait(false);
 
             _cache.Set(listKey, (IReadOnlyList<StremioSubtitle>)subs, CacheTtl);
@@ -93,17 +93,17 @@ namespace Gelato.Providers
             string filename = string.Empty;
             try
             {
-                // Prefer the filename stored in GelatoData (set from BehaviorHints.Filename during stream
+                // Prefer the filename stored in TorNadoData (set from BehaviorHints.Filename during stream
                 // insertion), since the stream URL often doesn't contain a meaningful filename.
                 var streamItem = _library
                     .GetItemList(new InternalItemsQuery { Path = request.MediaPath })
                     .FirstOrDefault();
-                var gelatoFilename = streamItem?.GelatoData<string>("filename");
+                var TorNadoFilename = streamItem?.TorNadoData<string>("filename");
 
-                if (!string.IsNullOrEmpty(gelatoFilename))
+                if (!string.IsNullOrEmpty(TorNadoFilename))
                 {
-                    filename = gelatoFilename;
-                    _log.LogDebug("Using GelatoData filename: {Filename}", filename);
+                    filename = TorNadoFilename;
+                    _log.LogDebug("Using TorNadoData filename: {Filename}", filename);
                 }
                 else if (
                     Uri.TryCreate(request.MediaPath, UriKind.Absolute, out var uri)
@@ -328,8 +328,9 @@ namespace Gelato.Providers
                 .ToHashSet();
 
         private static string ListCacheKey(string id, StremioMediaType mediaType) =>
-            $"gelato:subtitles:{mediaType.ToString().ToLower()}/{id}";
+            $"TorNado:subtitles:{mediaType.ToString().ToLower()}/{id}";
 
-        private static string SubCacheKey(string id) => $"gelato:subtitle:{id}";
+        private static string SubCacheKey(string id) => $"TorNado:subtitle:{id}";
     }
 }
+

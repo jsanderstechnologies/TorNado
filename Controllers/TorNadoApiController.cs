@@ -10,36 +10,36 @@ using Microsoft.Extensions.Logging;
 using MonoTorrent;
 using MonoTorrent.Client;
 
-namespace Gelato.Controllers;
+namespace TorNado.Controllers;
 
 [ApiController]
-[Route("gelato")]
-public sealed class GelatoApiController : ControllerBase
+[Route("TorNado")]
+public sealed class TorNadoApiController : ControllerBase
 {
-    private readonly ILogger<GelatoApiController> _log;
-    private readonly GelatoManager _gelatoManager;
+    private readonly ILogger<TorNadoApiController> _log;
+    private readonly TorNadoManager _TorNadoManager;
     private readonly string _downloadPath;
 
-    public GelatoApiController(
-        ILogger<GelatoApiController> log,
+    public TorNadoApiController(
+        ILogger<TorNadoApiController> log,
         IApplicationPaths appPaths,
-        GelatoManager gelatoManager
+        TorNadoManager TorNadoManager
     )
     {
         _log = log;
-        _gelatoManager = gelatoManager;
-        _downloadPath = Path.Combine(appPaths.CachePath, "gelato-torrents");
+        _TorNadoManager = TorNadoManager;
+        _downloadPath = Path.Combine(appPaths.CachePath, "TorNado-torrents");
         Directory.CreateDirectory(_downloadPath);
     }
 
     [HttpGet("meta/{stremioMetaType}/{Id}")]
     [Authorize]
-    public async Task<ActionResult<StremioMeta>> GelatoMeta(
+    public async Task<ActionResult<StremioMeta>> TorNadoMeta(
         [FromRoute, Required] StremioMediaType stremioMetaType,
         [FromRoute, Required] string id
     )
     {
-        var cfg = GelatoPlugin.Instance!.GetConfig(Guid.Empty);
+        var cfg = TorNadoPlugin.Instance!.GetConfig(Guid.Empty);
         var meta = await cfg.Stremio.GetMetaAsync(id, stremioMetaType);
         if (meta is null)
         {
@@ -56,7 +56,7 @@ public sealed class GelatoApiController : ControllerBase
         [FromRoute, Required] Guid itemId
     )
     {
-        var subs = _gelatoManager.GetStremioSubtitlesCache(itemId);
+        var subs = _TorNadoManager.GetStremioSubtitlesCache(itemId);
         return Ok(subs ?? new List<StremioSubtitle>());
     }
 
@@ -86,8 +86,8 @@ public sealed class GelatoApiController : ControllerBase
         var settings = new EngineSettingsBuilder
         {
             MaximumConnections = 40,
-            MaximumDownloadRate = GelatoPlugin.Instance!.Configuration.P2PDLSpeed,
-            MaximumUploadRate = GelatoPlugin.Instance.Configuration.P2PULSpeed,
+            MaximumDownloadRate = TorNadoPlugin.Instance!.Configuration.P2PDLSpeed,
+            MaximumUploadRate = TorNadoPlugin.Instance.Configuration.P2PULSpeed,
         }.ToSettings();
 
         var engine = new ClientEngine(settings);
@@ -283,3 +283,4 @@ public sealed class GelatoApiController : ControllerBase
         };
     }
 }
+

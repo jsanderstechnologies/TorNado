@@ -2,7 +2,7 @@ using MediaBrowser.Common.Configuration;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Services;
+namespace TorNado.Services;
 
 /// <summary>
 /// SQLite-backed cache service migrated from Palco.
@@ -44,7 +44,7 @@ public class PalcoCacheService : IDisposable
             CREATE INDEX IF NOT EXISTS idx_namespace ON cache(namespace);
         ";
         cmd.ExecuteNonQuery();
-        _logger.LogInformation("[Gelato] Palco Cache initialized at {Path}", _dbPath);
+        _logger.LogInformation("[TorNado] Palco Cache initialized at {Path}", _dbPath);
     }
 
     public string? Get(string key, string ns = "")
@@ -165,3 +165,4 @@ public class PalcoCacheService : IDisposable
         _connection?.Dispose();
     }
 }
+

@@ -1,8 +1,8 @@
 using MediaBrowser.Model.Tasks;
 
-namespace Gelato.ScheduledTasks;
+namespace TorNado.ScheduledTasks;
 
-public sealed class SyncSeriesTreesTask(GelatoManager manager) : IScheduledTask
+public sealed class SyncSeriesTreesTask(TorNadoManager manager) : IScheduledTask
 {
     public string Name => "Sync series trees";
     public string Key => "SyncSeriesTrees";
@@ -10,7 +10,7 @@ public sealed class SyncSeriesTreesTask(GelatoManager manager) : IScheduledTask
     public string Description =>
         "Fetches missing seasons and episodes for all continuing series. When 'Extend local series trees' is enabled, also fills in virtual items for locally scanned shows so you can stream episodes you don't have on disk.";
 
-    public string Category => "Gelato";
+    public string Category => "TorNado";
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
@@ -33,3 +33,4 @@ public sealed class SyncSeriesTreesTask(GelatoManager manager) : IScheduledTask
         progress.Report(100);
     }
 }
+

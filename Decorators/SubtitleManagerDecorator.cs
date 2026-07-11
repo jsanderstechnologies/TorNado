@@ -9,7 +9,7 @@ using MediaBrowser.Controller.Subtitles;
 using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Providers;
 
-namespace Gelato.Decorators
+namespace TorNado.Decorators
 {
     public sealed class SubtitleManagerDecorator : ISubtitleManager
     {
@@ -51,11 +51,11 @@ namespace Gelato.Decorators
             CancellationToken cancellationToken
         )
         {
-            var gelatoFilename = video.IsGelato() ? video.GelatoData<string>("filename") : null;
-            if (!string.IsNullOrEmpty(gelatoFilename))
+            var TorNadoFilename = video.IsTorNado() ? video.TorNadoData<string>("filename") : null;
+            if (!string.IsNullOrEmpty(TorNadoFilename))
             {
                 var originalPath = video.Path;
-                video.Path = gelatoFilename;
+                video.Path = TorNadoFilename;
                 try
                 {
                     await _inner
@@ -81,18 +81,18 @@ namespace Gelato.Decorators
             CancellationToken cancellationToken
         )
         {
-            if (video.IsGelato())
+            if (video.IsTorNado())
             {
                 libraryOptions.SaveSubtitlesWithMedia = false;
 
                 // Jellyfin derives the subtitle save filename from video.Path.
-                // For gelato stream items the path is a URL, which produces garbage names.
-                // Use the BehaviorHints.Filename stored in GelatoData if available.
-                var gelatoFilename = video.GelatoData<string>("filename");
-                if (!string.IsNullOrEmpty(gelatoFilename))
+                // For TorNado stream items the path is a URL, which produces garbage names.
+                // Use the BehaviorHints.Filename stored in TorNadoData if available.
+                var TorNadoFilename = video.TorNadoData<string>("filename");
+                if (!string.IsNullOrEmpty(TorNadoFilename))
                 {
                     var originalPath = video.Path;
-                    video.Path = gelatoFilename;
+                    video.Path = TorNadoFilename;
                     try
                     {
                         await _inner
@@ -127,3 +127,4 @@ namespace Gelato.Decorators
             _inner.GetSupportedProviders(item);
     }
 }
+

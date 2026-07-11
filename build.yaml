@@ -1,12 +1,12 @@
 ---
-name: "Gelato"
-guid: "94EA4E14-8163-4989-96FE-0A2094BC2D6A"
-version: "0.26.15.1"
-targetAbi: "10.11.6.0"
+name: "TorNado"
+guid: "85EA4E14-8163-4989-96FE-0A2094BC2D6B"
+version: "1.0.0.0"
+targetAbi: "10.11.11.0"
 framework: "net9.0"
-owner: "lstb1t"
+owner: "jsanderstechnologies"
 artifacts:
-  - "Gelato.dll"
+  - "TorNado.dll"
   - "Mono.Nat.dll"
   - "MonoTorrent.BEncoding.dll"
   - "MonoTorrent.Client.dll"
@@ -20,9 +20,9 @@ artifacts:
   - "MonoTorrent.PortForwarding.dll"
   - "MonoTorrent.Trackers.dll"
   - "ReusableTasks.dll"
-overview: "Stream external media."
+overview: "On-demand Usenet streams from TorBox Pro."
 description: >
-  Stream external media.
+  On-demand Usenet streams from TorBox Pro.
 category: "General"
 changelog: >
   changelog

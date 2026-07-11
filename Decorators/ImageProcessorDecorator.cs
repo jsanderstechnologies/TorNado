@@ -8,7 +8,7 @@ using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Decorators;
+namespace TorNado.Decorators;
 
 public sealed class ImageProcessorDecorator(
     IImageProcessor inner,
@@ -18,7 +18,7 @@ public sealed class ImageProcessorDecorator(
     ILogger<ImageProcessorDecorator> log
 ) : IImageProcessor
 {
-    private string GelatoImagesDir => Path.Combine(appPaths.DataPath, "gelato", "images");
+    private string TorNadoImagesDir => Path.Combine(appPaths.DataPath, "TorNado", "images");
 
     // Return a hardcoded blurhash for any zero-byte/missing placeholder that has a .url sidecar,
     // so Jellyfin never tries to decode the placeholder file.
@@ -46,8 +46,8 @@ public sealed class ImageProcessorDecorator(
 
     // On first access, lazily download the remote image to the placeholder path so
     // inner.ProcessImage can process/resize/cache it normally.
-    // Works for any path that has a .url sidecar (gelato items, persons, studios, etc.).
-    // Falls back to the gelato fake path for items whose DB path reverted to the Jellyfin
+    // Works for any path that has a .url sidecar (TorNado items, persons, studios, etc.).
+    // Falls back to the TorNado fake path for items whose DB path reverted to the Jellyfin
     // metadata location (e.g. persons scanned before the plugin intercepted their SaveImage).
     public async Task<(string Path, string? MimeType, DateTime DateModified)> ProcessImage(
         ImageProcessingOptions options
@@ -109,7 +109,7 @@ public sealed class ImageProcessorDecorator(
     }
 
     // Returns the .url sidecar path to use, checking the image's own path first, then
-    // falling back to the gelato fake path for this item + image type.
+    // falling back to the TorNado fake path for this item + image type.
     private string? ResolveUrlFile(string imagePath, ImageProcessingOptions options)
     {
         var direct = imagePath + ".url";
@@ -123,7 +123,7 @@ public sealed class ImageProcessorDecorator(
         var index = options.ImageIndex;
         var fileName = index > 0 ? $"{type}_{index}.jpg" : $"{type}.jpg";
         var fallback =
-            Path.Combine(GelatoImagesDir, options.Item.Id.ToString("N"), fileName) + ".url";
+            Path.Combine(TorNadoImagesDir, options.Item.Id.ToString("N"), fileName) + ".url";
         return File.Exists(fallback) ? fallback : null;
     }
 
@@ -160,3 +160,4 @@ public sealed class ImageProcessorDecorator(
     public void CreateImageCollage(ImageCollageOptions options, string? libraryName) =>
         inner.CreateImageCollage(options, libraryName);
 }
+

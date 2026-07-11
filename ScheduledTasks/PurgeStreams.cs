@@ -4,18 +4,18 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.ScheduledTasks;
+namespace TorNado.ScheduledTasks;
 
-public sealed class PurgeGelatoStreamsTask(
+public sealed class PurgeTorNadoStreamsTask(
     ILibraryManager libraryManager,
-    ILogger<PurgeGelatoStreamsTask> log,
-    GelatoManager manager
+    ILogger<PurgeTorNadoStreamsTask> log,
+    TorNadoManager manager
 ) : IScheduledTask
 {
     public string Name => "Purge streams";
-    public string Key => "PurgeGelatoStreamsTask";
+    public string Key => "PurgeTorNadoStreamsTask";
     public string Description => "Removes all stremio streams";
-    public string Category => "Gelato Maintenance";
+    public string Category => "TorNado Maintenance";
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
@@ -84,3 +84,4 @@ public sealed class PurgeGelatoStreamsTask(
         return Task.CompletedTask;
     }
 }
+

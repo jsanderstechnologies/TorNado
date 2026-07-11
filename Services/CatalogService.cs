@@ -1,12 +1,12 @@
-using Gelato.Config;
+using TorNado.Config;
 
-namespace Gelato.Services;
+namespace TorNado.Services;
 
-public class CatalogService(GelatoStremioProviderFactory stremioFactory)
+public class CatalogService(TorNadoStremioProviderFactory stremioFactory)
 {
     public async Task<List<CatalogConfig>> GetCatalogsAsync(Guid userId)
     {
-        var config = GelatoPlugin.Instance!.Configuration;
+        var config = TorNadoPlugin.Instance!.Configuration;
         var provider = stremioFactory.Create(userId);
         var manifest = await provider.GetManifestAsync();
 
@@ -49,14 +49,14 @@ public class CatalogService(GelatoStremioProviderFactory stremioFactory)
         config.Catalogs = catalogs;
 
         // Save if we added new ones (optional, but good for persistence)
-        GelatoPlugin.Instance.SaveConfiguration();
+        TorNadoPlugin.Instance.SaveConfiguration();
 
         return config.Catalogs;
     }
 
     public void UpdateCatalogConfig(CatalogConfig updatedConfig)
     {
-        var config = GelatoPlugin.Instance!.Configuration;
+        var config = TorNadoPlugin.Instance!.Configuration;
         var existing = config.Catalogs.FirstOrDefault(c =>
             c.Id == updatedConfig.Id && c.Type == updatedConfig.Type
         );
@@ -72,13 +72,14 @@ public class CatalogService(GelatoStremioProviderFactory stremioFactory)
             config.Catalogs.Add(updatedConfig);
         }
 
-        GelatoPlugin.Instance.SaveConfiguration();
+        TorNadoPlugin.Instance.SaveConfiguration();
     }
 
     public CatalogConfig? GetCatalogConfig(string id, string type)
     {
-        return GelatoPlugin.Instance!.Configuration.Catalogs.FirstOrDefault(c =>
+        return TorNadoPlugin.Instance!.Configuration.Catalogs.FirstOrDefault(c =>
             c.Id == id && c.Type == type
         );
     }
 }
+

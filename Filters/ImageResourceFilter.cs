@@ -2,15 +2,15 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Filters;
+namespace TorNado.Filters;
 
 /// <summary>
-/// Proxies image requests for search results (non-library gelato items).
+/// Proxies image requests for search results (non-library TorNado items).
 /// Library item images are handled by ImageProcessorDecorator.
 /// </summary>
 public sealed class ImageResourceFilter(
     IHttpClientFactory http,
-    GelatoManager manager,
+    TorNadoManager manager,
     ILogger<ImageResourceFilter> log
 ) : IAsyncResourceFilter
 {
@@ -91,3 +91,4 @@ public sealed class ImageResourceFilter(
         }
     }
 }
+

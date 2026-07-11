@@ -8,7 +8,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Decorators;
+namespace TorNado.Decorators;
 
 public sealed class ProviderManagerDecorator(
     IProviderManager inner,
@@ -41,12 +41,12 @@ public sealed class ProviderManagerDecorator(
                 url
             );
 
-            // Always persist the URL at the gelato fake path so it can be resolved on demand
+            // Always persist the URL at the TorNado fake path so it can be resolved on demand
             // regardless of LazyImages mode — this is the permanent source-of-truth for the URL.
             var info = BuildImageInfo(appPaths, item.Id, type, imageIndex);
             File.WriteAllText(info.Path + ".url", url);
 
-            if (GelatoPlugin.Instance?.Configuration.LazyImages == true)
+            if (TorNadoPlugin.Instance?.Configuration.LazyImages == true)
             {
                 // Lazy mode: point the item at the zero-byte placeholder; ImageProcessorDecorator
                 // will download on first render.
@@ -99,7 +99,7 @@ public sealed class ProviderManagerDecorator(
         var fileName = imageIndex is > 0 ? $"{type}_{imageIndex}.jpg" : $"{type}.jpg";
         var fakePath = Path.Combine(
             appPaths.DataPath,
-            "gelato",
+            "TorNado",
             "images",
             itemId.ToString("N"),
             fileName
@@ -228,3 +228,4 @@ public sealed class ProviderManagerDecorator(
 
     public double? GetRefreshProgress(Guid id) => inner.GetRefreshProgress(id);
 }
+

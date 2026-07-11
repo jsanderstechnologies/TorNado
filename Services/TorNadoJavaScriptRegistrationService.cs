@@ -1,20 +1,20 @@
 using System.Reflection;
 using System.Runtime.Loader;
-using Gelato.Config;
+using TorNado.Config;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 
-namespace Gelato.Services
+namespace TorNado.Services
 {
     /// <summary>
     /// Hosted service that registers bundled frontend JavaScript files (embedded resources under Frontend/js)
     /// with a JavaScript registration service if available. Reacts to configuration changes to (un)register scripts.
     /// </summary>
-    public class GelatoJavaScriptRegistrationService(
+    public class TorNadoJavaScriptRegistrationService(
         IOptionsMonitor<PluginConfiguration> optionsMonitor,
-        ILogger<GelatoJavaScriptRegistrationService> logger
+        ILogger<TorNadoJavaScriptRegistrationService> logger
     ) : IHostedService, IDisposable
     {
         private readonly Lock _lock = new();
@@ -58,10 +58,10 @@ namespace Gelato.Services
             { /* ignore if options monitor not wired */
             }
 
-            // Also subscribe to plugin-level configuration update events (fired by GelatoPlugin.UpdateConfiguration)
+            // Also subscribe to plugin-level configuration update events (fired by TorNadoPlugin.UpdateConfiguration)
             try
             {
-                GelatoPlugin.ConfigurationChanged += OnConfigChanged;
+                TorNadoPlugin.ConfigurationChanged += OnConfigChanged;
             }
             catch (Exception)
             { /* ignore if plugin static event not available */
@@ -70,7 +70,7 @@ namespace Gelato.Services
             // Register according to current config - prefer plugin instance config if available
             try
             {
-                var cfg = GelatoPlugin.Instance?.Configuration ?? optionsMonitor.CurrentValue;
+                var cfg = TorNadoPlugin.Instance?.Configuration ?? optionsMonitor.CurrentValue;
                 UpdateRegistration(cfg);
             }
             catch (Exception ex)
@@ -151,10 +151,10 @@ namespace Gelato.Services
                     return;
                 }
 
-                var pluginId = GelatoPlugin.Instance?.Id.ToString() ?? "gelato-plugin";
-                var pluginName = GelatoPlugin.Instance?.Name ?? "Gelato";
+                var pluginId = TorNadoPlugin.Instance?.Id.ToString() ?? "TorNado-plugin";
+                var pluginName = TorNadoPlugin.Instance?.Name ?? "TorNado";
                 var pluginVersion =
-                    GelatoPlugin.Instance?.GetType().Assembly.GetName().Version?.ToString()
+                    TorNadoPlugin.Instance?.GetType().Assembly.GetName().Version?.ToString()
                     ?? "unknown";
 
                 foreach (var res in resources)
@@ -239,7 +239,7 @@ namespace Gelato.Services
             {
                 if (_pluginInterfaceType != null)
                 {
-                    var pluginId = GelatoPlugin.Instance?.Id.ToString() ?? "gelato-plugin";
+                    var pluginId = TorNadoPlugin.Instance?.Id.ToString() ?? "TorNado-plugin";
                     var unregisterResult = _pluginInterfaceType
                         .GetMethod("UnregisterAllScriptsFromPlugin")
                         ?.Invoke(null, [pluginId]);
@@ -279,7 +279,7 @@ namespace Gelato.Services
                 _onChangeToken?.Dispose();
                 try
                 {
-                    GelatoPlugin.ConfigurationChanged -= OnConfigChanged;
+                    TorNadoPlugin.ConfigurationChanged -= OnConfigChanged;
                 }
                 catch (Exception)
                 {
@@ -304,7 +304,7 @@ namespace Gelato.Services
             _onChangeToken?.Dispose();
             try
             {
-                GelatoPlugin.ConfigurationChanged -= OnConfigChanged;
+                TorNadoPlugin.ConfigurationChanged -= OnConfigChanged;
             }
             catch (Exception)
             {
@@ -313,3 +313,4 @@ namespace Gelato.Services
         }
     }
 }
+

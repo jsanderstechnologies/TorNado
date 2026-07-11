@@ -4,11 +4,11 @@ using MediaBrowser.Controller.Library;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Gelato.Filters;
+namespace TorNado.Filters;
 
 public sealed class DownloadFilter(
     ILibraryManager library,
-    GelatoManager manager,
+    TorNadoManager manager,
     IUserManager userManager,
     IMediaSourceManager mediaSourceManager,
     IHttpClientFactory httpClientFactory
@@ -95,3 +95,4 @@ public sealed class DownloadFilter(
         await next();
     }
 }
+

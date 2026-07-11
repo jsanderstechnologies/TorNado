@@ -1,16 +1,16 @@
-using Gelato.Config;
-using Gelato.ScheduledTasks;
-using Gelato.Services;
+using TorNado.Config;
+using TorNado.ScheduledTasks;
+using TorNado.Services;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Controllers;
+namespace TorNado.Controllers;
 
 [ApiController]
-[Route("gelato/catalogs")]
+[Route("TorNado/catalogs")]
 [Authorize]
 public class CatalogController(
     ILogger<CatalogController> logger,
@@ -86,7 +86,7 @@ public class CatalogController(
         {
             try
             {
-                taskManager.CancelIfRunningAndQueue<GelatoCatalogItemsSyncTask>();
+                taskManager.CancelIfRunningAndQueue<TorNadoCatalogItemsSyncTask>();
             }
             catch (Exception ex)
             {
@@ -99,3 +99,4 @@ public class CatalogController(
         return Accepted();
     }
 }
+

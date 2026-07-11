@@ -4,14 +4,14 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Providers;
+namespace TorNado.Providers;
 
-public sealed class GelatoEpisodeMetadataProvider(
-    ILogger<GelatoEpisodeMetadataProvider> log,
-    GelatoManager manager
+public sealed class TorNadoEpisodeMetadataProvider(
+    ILogger<TorNadoEpisodeMetadataProvider> log,
+    TorNadoManager manager
 ) : IRemoteMetadataProvider<Episode, EpisodeInfo>, IHasOrder
 {
-    public string Name => "Gelato";
+    public string Name => "TorNado";
     public int Order => 0;
 
     public async Task<MetadataResult<Episode>> GetMetadata(
@@ -32,13 +32,13 @@ public sealed class GelatoEpisodeMetadataProvider(
         if (string.IsNullOrWhiteSpace(seriesImdbId) || season is null || episode is null)
         {
             log.LogDebug(
-                "GelatoEpisodeMetadataProvider: missing series IMDB id or season/episode numbers for {Name}",
+                "TorNadoEpisodeMetadataProvider: missing series IMDB id or season/episode numbers for {Name}",
                 info.Name
             );
             return result;
         }
 
-        var stremio = GelatoPlugin.Instance?.Configuration.Stremio;
+        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
         if (stremio is null)
             return result;
 
@@ -54,7 +54,7 @@ public sealed class GelatoEpisodeMetadataProvider(
         {
             log.LogWarning(
                 ex,
-                "GelatoEpisodeMetadataProvider: failed to fetch series meta for {Id}",
+                "TorNadoEpisodeMetadataProvider: failed to fetch series meta for {Id}",
                 seriesId
             );
             return result;
@@ -70,7 +70,7 @@ public sealed class GelatoEpisodeMetadataProvider(
         if (epMeta is null)
         {
             log.LogDebug(
-                "GelatoEpisodeMetadataProvider: no episode meta found for S{Season}E{Episode} in {SeriesId}",
+                "TorNadoEpisodeMetadataProvider: no episode meta found for S{Season}E{Episode} in {SeriesId}",
                 season,
                 episode,
                 seriesId
@@ -99,3 +99,4 @@ public sealed class GelatoEpisodeMetadataProvider(
         CancellationToken cancellationToken
     ) => throw new NotImplementedException();
 }
+

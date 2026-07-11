@@ -1,16 +1,16 @@
 using MediaBrowser.Model.Tasks;
 
-namespace Gelato.ScheduledTasks;
+namespace TorNado.ScheduledTasks;
 
-public sealed class SyncReleaseDatesTask(GelatoManager manager) : IScheduledTask
+public sealed class SyncReleaseDatesTask(TorNadoManager manager) : IScheduledTask
 {
     public string Name => "Sync release dates";
     public string Key => "SyncReleaseDates";
 
     public string Description =>
-        "Sets the digital release date on all Gelato movies and series items. Used by the 'Filter unreleased items' feature. Run this after enabling that filter to fix existing library items.";
+        "Sets the digital release date on all TorNado movies and series items. Used by the 'Filter unreleased items' feature. Run this after enabling that filter to fix existing library items.";
 
-    public string Category => "Gelato";
+    public string Category => "TorNado";
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
@@ -33,3 +33,4 @@ public sealed class SyncReleaseDatesTask(GelatoManager manager) : IScheduledTask
         progress.Report(100);
     }
 }
+

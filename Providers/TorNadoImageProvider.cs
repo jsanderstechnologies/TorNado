@@ -6,13 +6,13 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace Gelato.Providers;
+namespace TorNado.Providers;
 
-public sealed class GelatoImageProvider(ILogger<GelatoImageProvider> log)
+public sealed class TorNadoImageProvider(ILogger<TorNadoImageProvider> log)
     : IRemoteImageProvider,
         IHasOrder
 {
-    public string Name => "Gelato";
+    public string Name => "TorNado";
     public int Order => 0;
 
     public bool Supports(BaseItem item) => item is Movie or Series;
@@ -28,11 +28,11 @@ public sealed class GelatoImageProvider(ILogger<GelatoImageProvider> log)
         var id = ResolveId(item);
         if (id is null)
         {
-            log.LogDebug("GelatoImageProvider: no usable ID for {Name}", item.Name);
+            log.LogDebug("TorNadoImageProvider: no usable ID for {Name}", item.Name);
             return [];
         }
 
-        var stremio = GelatoPlugin.Instance?.Configuration.Stremio;
+        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
         if (stremio is null)
             return [];
 
@@ -44,7 +44,7 @@ public sealed class GelatoImageProvider(ILogger<GelatoImageProvider> log)
         }
         catch (Exception ex)
         {
-            log.LogWarning(ex, "GelatoImageProvider: failed to fetch meta for {Id}", id);
+            log.LogWarning(ex, "TorNadoImageProvider: failed to fetch meta for {Id}", id);
             return [];
         }
 
@@ -67,7 +67,7 @@ public sealed class GelatoImageProvider(ILogger<GelatoImageProvider> log)
             images.Add(
                 new RemoteImageInfo
                 {
-                    ProviderName = "Gelato",
+                    ProviderName = "TorNado",
                     Type = ImageType.Primary,
                     Url = meta.Poster,
                 }
@@ -77,7 +77,7 @@ public sealed class GelatoImageProvider(ILogger<GelatoImageProvider> log)
             images.Add(
                 new RemoteImageInfo
                 {
-                    ProviderName = "Gelato",
+                    ProviderName = "TorNado",
                     Type = ImageType.Backdrop,
                     Url = meta.Background,
                 }
@@ -87,7 +87,7 @@ public sealed class GelatoImageProvider(ILogger<GelatoImageProvider> log)
             images.Add(
                 new RemoteImageInfo
                 {
-                    ProviderName = "Gelato",
+                    ProviderName = "TorNado",
                     Type = ImageType.Logo,
                     Url = meta.Logo,
                 }
@@ -97,7 +97,7 @@ public sealed class GelatoImageProvider(ILogger<GelatoImageProvider> log)
             images.Add(
                 new RemoteImageInfo
                 {
-                    ProviderName = "Gelato",
+                    ProviderName = "TorNado",
                     Type = ImageType.Thumb,
                     Url = meta.LandscapePoster,
                 }
@@ -119,3 +119,4 @@ public sealed class GelatoImageProvider(ILogger<GelatoImageProvider> log)
         return null;
     }
 }
+
