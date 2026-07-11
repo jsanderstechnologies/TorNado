@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using TorNado.Config;
 using TorNado.Services;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -169,6 +170,11 @@ namespace TorNado
             return [];
         }
 
+        public async Task<List<StremioMeta>> GetCatalogMetasAsync(string catalogId, string type, string? search = null, int skip = 0)
+        {
+            return [];
+        }
+
         public Task<StremioManifest?> GetManifestAsync(bool force = false)
         {
             return Task.FromResult<StremioManifest?>(new StremioManifest());
@@ -229,6 +235,11 @@ namespace TorNado
         public string? Id { get; set; }
         public string? Url { get; set; }
         public string? Lang { get; set; }
+        public string? Title { get; set; }
+        public bool? FromTrusted { get; set; }
+        public bool? AiTranslated { get; set; }
+
+        public string TwoLetterISOLanguageName() => Lang ?? "en";
     }
 
     public class StremioManifest
