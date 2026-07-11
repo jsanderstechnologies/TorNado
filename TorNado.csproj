@@ -22,6 +22,8 @@
     <EmbeddedResource Include="Config\config.html" />
     <!-- Embed all frontend assets so they are delivered with the plugin -->
     <EmbeddedResource Include="Frontend\**\*" />
+    <!-- Plugin logo shown in Jellyfin plugin list -->
+    <EmbeddedResource Include="logo.png" />
   </ItemGroup>
   <Target Name="CleanupJellyfinDlls" AfterTargets="Build">
     <ItemGroup>
