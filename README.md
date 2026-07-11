@@ -20,7 +20,7 @@ TorNado brings the power of the TorBox Pro Usenet network directly into Jellyfin
 
 1. **TMDB API Key** – Obtain a free API key from [The Movie Database (TMDB)](https://www.themoviedb.org/).
 2. **TorBox Pro API Key** – Ensure you have an active TorBox Pro subscription and copy your API Key.
-3. **Configure TorNado** – Install the plugin on Jellyfin 10.11.11, open the TorNado plugin page, and input your API keys.
+3. **Install & Configure** – Add `https://raw.githubusercontent.com/jsanderstechnologies/TorNado/refs/heads/gh-pages/repository.json` to your Jellyfin plugin repositories (under Dashboard -> Plugins -> Repositories). Install TorNado, restart the server, and enter your API keys.
 4. **Library Configuration** – Point your Jellyfin library folders to the configured movie and series path stubs.
 5. **Start Streaming** – Perform a search, select an item, and TorNado will resolve the NZB links through TorBox Pro to play instantly.
 
