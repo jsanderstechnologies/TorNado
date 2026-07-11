@@ -8,11 +8,11 @@
     "owner": "jsanderstechnologies",
     "versions": [
       {
-        "changelog": "TorNado v1.0.0\n- NNTP host/port/username/password settings\n- All Gelato references renamed to TorNado",
-        "checksum": "84fb6248989f5c0da2db7ef76a6fa14a",
+        "changelog": "TorNado v1.0.0\n- Plugin logo embedded as assembly resource (auto-discovered by Jellyfin)\n- NNTP host/port/username/password settings\n- All Gelato references renamed to TorNado",
+        "checksum": "82575140b444f304cd48b0ef0180b47f",
         "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.0/tornado_1.0.0.0.zip",
         "targetAbi": "10.11.11.0",
-        "timestamp": "2026-07-11T18:46:49Z",
+        "timestamp": "2026-07-11T18:51:45Z",
         "version": "1.0.0.0"
       }
     ]
