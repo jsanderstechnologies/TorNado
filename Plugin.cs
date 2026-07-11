@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace TorNado;
 
-public class TorNadoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages, IHasPluginImage
+public class TorNadoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
 {
     private readonly ILogger<TorNadoPlugin> _log;
     private readonly TorNadoManager _manager;
@@ -53,12 +53,6 @@ public class TorNadoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages, IHas
             EnableInMainMenu = true,
             EmbeddedResourcePath = prefix + ".Config.config.html",
         };
-    }
-
-    /// <inheritdoc />
-    public Stream? GetPluginImage()
-    {
-        return GetType().Assembly.GetManifestResourceStream(GetType().Namespace + ".logo.png");
     }
 
     public override void UpdateConfiguration(BasePluginConfiguration configuration)
