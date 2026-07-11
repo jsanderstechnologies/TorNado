@@ -239,6 +239,8 @@ namespace TorNado
         public bool? FromTrusted { get; set; }
         public bool? AiTranslated { get; set; }
 
+        public string? LangCode => Lang;
+
         public string TwoLetterISOLanguageName() => Lang ?? "en";
     }
 
