@@ -200,5 +200,116 @@ namespace TorNado
         public string? Url { get; set; }
         public string? Lang { get; set; }
     }
-}
 
+    public class StremioManifest
+    {
+        public string Name { get; set; } = "";
+        public string Id { get; set; } = "";
+        public string Version { get; set; } = "";
+        public string? Description { get; set; }
+        public List<StremioCatalog> Catalogs { get; set; } = new();
+    }
+
+    public class StremioCatalog
+    {
+        public string Type { get; set; } = "";
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+    }
+
+    public class StremioMeta
+    {
+        public required string Id { get; set; }
+        public StremioMediaType Type { get; set; } = StremioMediaType.Unknown;
+        public string? Name { get; set; }
+        public string? Title { get; set; }
+        public string? Poster { get; set; }
+        public List<string>? Genres { get; set; }
+        public string? ReleaseInfo { get; set; }
+        public string? Description { get; set; }
+        public string? Overview { get; set; }
+        public string? Background { get; set; }
+        public string? Logo { get; set; }
+        public List<StremioMeta>? Videos { get; set; }
+        public string? Runtime { get; set; }
+        public string? Country { get; set; }
+        public float? ImdbRating { get; set; }
+        public StremioBehaviorHints? BehaviorHints { get; set; }
+        public List<string>? Genre { get; set; }
+        public string? ImdbId { get; set; }
+        public DateTime? Released { get; set; }
+        public StremioStatus? Status { get; set; } = StremioStatus.Unknown;
+        public int? Year { get; set; }
+        public string? Slug { get; set; }
+        public StremioAppExtras? App_Extras { get; set; }
+        public string? Thumbnail { get; set; }
+        public int? Episode { get; set; }
+        public int? Season { get; set; }
+        public int? Number { get; set; }
+        public DateTime? FirstAired { get; set; }
+        public Guid? Guid { get; set; }
+
+        public string? TvdbEpisodeId() => null;
+        public string GetName() => Title ?? Name ?? "";
+        public Dictionary<string, string> GetProviderIds()
+        {
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(Id))
+            {
+                if (Id.StartsWith("tmdb:", StringComparison.OrdinalIgnoreCase))
+                    dict["Tmdb"] = Id["tmdb:".Length..];
+                else if (Id.StartsWith("tt", StringComparison.OrdinalIgnoreCase))
+                    dict["Imdb"] = Id;
+            }
+            if (!string.IsNullOrWhiteSpace(ImdbId))
+                dict["Imdb"] = ImdbId;
+            return dict;
+        }
+
+        public int? GetYear()
+        {
+            if (Year is not null) return Year;
+            if (Released is { } dt) return dt.Year;
+            if (!string.IsNullOrWhiteSpace(ReleaseInfo) && ReleaseInfo.Length >= 4 && int.TryParse(ReleaseInfo.AsSpan(0, 4), out var y))
+                return y;
+            return null;
+        }
+
+        public DateTime? GetPremiereDate()
+        {
+            if (Released is { } dt) return dt;
+            var y = GetYear();
+            return y.HasValue ? new DateTime(y.Value, 1, 1) : null;
+        }
+
+        public DateTime? GetDigitalReleaseDate() => null;
+        public bool IsValid() => !string.IsNullOrWhiteSpace(Id) && !Id.Contains("error");
+        public bool IsReleased(int bufferDays = 0) => true;
+        public StremioStatus? GetStatus() => Status;
+    }
+
+    public class StremioAppExtras
+    {
+        public List<string?>? SeasonPosters { get; set; }
+        public string? Certification { get; set; }
+        public TmdbReleaseDatesContainer? ReleaseDates { get; set; }
+    }
+
+    public class TmdbReleaseDatesContainer
+    {
+        public List<TmdbReleaseDateCountry>? Results { get; set; }
+    }
+
+    public class TmdbReleaseDateCountry
+    {
+        public string? Iso31661 { get; set; }
+        public List<TmdbReleaseDateItem>? ReleaseDates { get; set; }
+    }
+
+    public class TmdbReleaseDateItem
+    {
+        public DateTime? ReleaseDate { get; set; }
+        public int Type { get; set; }
+        public string? Certification { get; set; }
+    }
+}
