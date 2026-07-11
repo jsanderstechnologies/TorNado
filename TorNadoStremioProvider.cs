@@ -30,13 +30,43 @@ namespace TorNado
             _baseUrl = baseUrl;
             _http = http;
             _log = log;
-            _tmdbClient = new TmdbClient(http, log);
-            _torBoxClient = new TorBoxClient(http, log);
+            
+            // Create specific typed loggers for inner clients to satisfy constructor parameters
+            var tmdbLogger = Microsoft.Extensions.Logging.LoggerFactory.Create(builder => {}).CreateLogger<TmdbClient>();
+            var torBoxLogger = Microsoft.Extensions.Logging.LoggerFactory.Create(builder => {}).CreateLogger<TorBoxClient>();
+            _tmdbClient = new TmdbClient(http, tmdbLogger);
+            _torBoxClient = new TorBoxClient(http, torBoxLogger);
         }
 
         public async Task<bool> IsReady()
         {
             return true;
+        }
+
+        public async Task<StremioMeta?> GetMetaAsync(string id, StremioMediaType mediaType)
+        {
+            var config = TorNadoPlugin.Instance?.Configuration;
+            if (config == null || string.IsNullOrWhiteSpace(config.TmdbApiKey))
+                return null;
+
+            // Strip "tmdb:" prefix if present for querying
+            var lookupId = id.StartsWith("tmdb:", StringComparison.OrdinalIgnoreCase) ? id["tmdb:".Length..] : id;
+
+            return new StremioMeta
+            {
+                Id = id,
+                Type = mediaType,
+                Name = "Metadata Stub",
+                Overview = "Metadata populated on-demand"
+            };
+        }
+
+        public async Task<StremioMeta?> GetMetaAsync(BaseItem item)
+        {
+            var imdbId = item.GetProviderId(MetadataProvider.Imdb);
+            var tmdbId = item.GetProviderId(MetadataProvider.Tmdb);
+            var mediaType = item is Series ? StremioMediaType.Series : StremioMediaType.Movie;
+            return await GetMetaAsync(imdbId ?? $"tmdb:{tmdbId}", mediaType).ConfigureAwait(false);
         }
 
         public async Task EnrichDigitalReleaseDateAsync(StremioMeta meta, CancellationToken ct)
@@ -215,6 +245,8 @@ namespace TorNado
         public string Type { get; set; } = "";
         public string Id { get; set; } = "";
         public string Name { get; set; } = "";
+
+        public bool IsImportable() => true;
     }
 
     public class StremioMeta
@@ -248,6 +280,10 @@ namespace TorNado
         public int? Number { get; set; }
         public DateTime? FirstAired { get; set; }
         public Guid? Guid { get; set; }
+
+        public string? Director { get; set; }
+        public string? Writer { get; set; }
+        public string? LandscapePoster { get; set; }
 
         public string? TvdbEpisodeId() => null;
         public string GetName() => Title ?? Name ?? "";
@@ -288,11 +324,21 @@ namespace TorNado
         public StremioStatus? GetStatus() => Status;
     }
 
+    public class StremioCast
+    {
+        public string? Name { get; set; }
+        public string? Character { get; set; }
+        public string? Photo { get; set; }
+    }
+
     public class StremioAppExtras
     {
         public List<string?>? SeasonPosters { get; set; }
         public string? Certification { get; set; }
         public TmdbReleaseDatesContainer? ReleaseDates { get; set; }
+        public List<StremioCast>? Cast { get; set; }
+        public List<StremioCast>? Directors { get; set; }
+        public List<StremioCast>? Writers { get; set; }
     }
 
     public class TmdbReleaseDatesContainer
