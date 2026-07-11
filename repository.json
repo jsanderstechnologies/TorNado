@@ -8,11 +8,11 @@
     "owner": "jsanderstechnologies",
     "versions": [
       {
-        "changelog": "TorNado v1.0.0 Release - TorBox Usenet network on Jellyfin",
-        "checksum": "e90a44b31267fb2e409aa6bfbd8d1038",
+        "changelog": "TorNado v1.0.0 - TorBox Usenet on Jellyfin\nAdds NNTP host/port settings (nntp.torbox.app:563)",
+        "checksum": "26ca8cdbef95e0f1ec2d235586607c94",
         "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.0/tornado_1.0.0.0.zip",
         "targetAbi": "10.11.11.0",
-        "timestamp": "2026-07-11T18:24:49Z",
+        "timestamp": "2026-07-11T18:45:09Z",
         "version": "1.0.0.0"
       }
     ]
