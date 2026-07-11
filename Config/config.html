@@ -53,6 +53,19 @@
               <div class="fieldDescription">Defaults to <code>https://search-api.torbox.app/newznab</code>.</div>
             </div>
 
+            <div class="inputContainer" style="display: flex; gap: 1em;">
+              <div style="flex: 2;">
+                <label class="inputLabel inputLabelUnfocused" for="txtNntpHost">NNTP Host:</label>
+                <input is="emby-input" type="text" id="txtNntpHost" class="emby-input" />
+                <div class="fieldDescription">Defaults to <code>nntp.torbox.app</code>.</div>
+              </div>
+              <div style="flex: 1;">
+                <label class="inputLabel inputLabelUnfocused" for="txtNntpPort">NNTP Port:</label>
+                <input is="emby-input" type="number" id="txtNntpPort" class="emby-input" />
+                <div class="fieldDescription">Defaults to <code>563</code> (SSL).</div>
+              </div>
+            </div>
+
             <div class="inputContainer">
               <label class="inputLabel inputLabelUnfocused" for="txtMoviePath">Movies path:</label>
               <input is="emby-input" type="text" id="txtMoviePath" class="emby-input" />
@@ -283,6 +296,8 @@
         const txtTmdbApiKey = page.querySelector('#txtTmdbApiKey');
         const txtTorBoxApiKey = page.querySelector('#txtTorBoxApiKey');
         const txtTorBoxUsenetServer = page.querySelector('#txtTorBoxUsenetServer');
+        const txtNntpHost = page.querySelector('#txtNntpHost');
+        const txtNntpPort = page.querySelector('#txtNntpPort');
         const txtMoviePath = page.querySelector('#txtMoviePath');
         const txtSeriesPath = page.querySelector('#txtSeriesPath');
 
@@ -333,6 +348,8 @@
             if (txtTmdbApiKey) txtTmdbApiKey.value = cfg.TmdbApiKey || "";
             if (txtTorBoxApiKey) txtTorBoxApiKey.value = cfg.TorBoxApiKey || "";
             if (txtTorBoxUsenetServer) txtTorBoxUsenetServer.value = cfg.TorBoxUsenetServer || "https://search-api.torbox.app/newznab";
+            if (txtNntpHost) txtNntpHost.value = cfg.NntpHost || "nntp.torbox.app";
+            if (txtNntpPort) txtNntpPort.value = cfg.NntpPort || 563;
             if (txtMoviePath) txtMoviePath.value = cfg.MoviePath || "";
             if (txtSeriesPath) txtSeriesPath.value = cfg.SeriesPath || "";
             if (txtStreamTTL) txtStreamTTL.value = cfg.StreamTTL || 3600;
@@ -365,6 +382,8 @@
             cfg.TmdbApiKey = txtTmdbApiKey.value.trim();
             cfg.TorBoxApiKey = txtTorBoxApiKey.value.trim();
             cfg.TorBoxUsenetServer = txtTorBoxUsenetServer.value.trim();
+            cfg.NntpHost = txtNntpHost.value.trim() || "nntp.torbox.app";
+            cfg.NntpPort = parseInt(txtNntpPort.value) || 563;
             cfg.MoviePath = txtMoviePath.value.trim();
             cfg.SeriesPath = txtSeriesPath.value.trim();
 
