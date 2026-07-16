@@ -8,6 +8,14 @@
     "owner": "jsanderstechnologies",
     "versions": [
       {
+        "changelog": "## [1.0.2] - 2026-07-16\n\n### 🐛 Bug Fixes\n\n- Fetch TV show seasons and episodes from TMDB to populate virtual library\n",
+        "checksum": "2f697141730f74de6584483a1aad85fb",
+        "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.2/tornado_1.0.2.0.zip",
+        "targetAbi": "10.11.11.0",
+        "timestamp": "2026-07-16T16:31:56Z",
+        "version": "1.0.2"
+      },
+      {
         "changelog": "## [1.0.1] - 2026-07-16\n\n### 🐛 Bug Fixes\n\n- Use proper item name instead of imdbId for TorBox Usenet search\n\n### ⚙️ Miscellaneous Tasks\n\n- Combine release and publish workflows into one\n",
         "checksum": "14a23d87de995acc1fbfd629adcdde1a",
         "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.1/tornado_1.0.1.0.zip",
