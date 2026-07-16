@@ -3,6 +3,7 @@
     "category": "General",
     "description": "On-demand Usenet streams from TorBox Pro.\n",
     "guid": "85EA4E14-8163-4989-96FE-0A2094BC2D6B",
+    "imageUrl": "https://raw.githubusercontent.com/jsanderstechnologies/TorNado/master/logo.png",
     "name": "TorNado",
     "overview": "On-demand Usenet streams from TorBox Pro.",
     "owner": "jsanderstechnologies",
