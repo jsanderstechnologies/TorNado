@@ -412,7 +412,7 @@ public sealed class TorNadoManager(
 
         var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
         var stremio = cfg.Stremio;
-        var streams = await stremio.GetStreamsAsync(uri).ConfigureAwait(false);
+        var streams = await stremio.GetStreamsAsync(uri, video).ConfigureAwait(false);
         var httpPort = GetHttpPort();
 
         // Filter valid streams

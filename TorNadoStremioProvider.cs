@@ -129,7 +129,7 @@ namespace TorNado
         /// <summary>
         /// Gets streams for a media item. In TorNado, we search the TorBox Usenet network.
         /// </summary>
-        public async Task<List<StremioStream>> GetStreamsAsync(StremioUri uri)
+        public async Task<List<StremioStream>> GetStreamsAsync(StremioUri uri, BaseItem video)
         {
             var config = TorNadoPlugin.Instance?.Configuration;
             if (config == null || string.IsNullOrWhiteSpace(config.TorBoxApiKey))
@@ -138,9 +138,25 @@ namespace TorNado
                 return [];
             }
 
-            // Generate a search query based on IMDb / TMDB / Name
-            var imdbId = uri.ExternalId;
-            var query = imdbId;
+            var query = video.Name ?? "";
+            if (video is Episode ep)
+            {
+                var seriesName = ep.SeriesName ?? ep.Series?.Name;
+                if (!string.IsNullOrWhiteSpace(seriesName))
+                {
+                    query = $"{seriesName} S{ep.ParentIndexNumber:D2}E{ep.IndexNumber:D2}";
+                }
+                else
+                {
+                    query = $"{video.Name} S{ep.ParentIndexNumber:D2}E{ep.IndexNumber:D2}";
+                }
+            }
+            else if (video.ProductionYear.HasValue && video.ProductionYear.Value > 0)
+            {
+                query = $"{video.Name} {video.ProductionYear.Value}";
+            }
+
+            _log.LogInformation("TorBox Usenet search query: {Query}", query);
 
             // Call TorBox Usenet search using voyager/newznab endpoint
             var usenetResults = await _torBoxClient.SearchUsenetAsync(query, config.TorBoxUsenetServer, config.TorBoxApiKey, CancellationToken.None);
