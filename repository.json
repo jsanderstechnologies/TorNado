@@ -8,6 +8,14 @@
     "owner": "jsanderstechnologies",
     "versions": [
       {
+        "changelog": "## [1.0.3] - 2026-07-16\n\n### 🚜 Refactor\n\n- Replace all Stremio references with TorNado equivalents\n",
+        "checksum": "d90da0ca7d9fa6c2dd2c11026785391a",
+        "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.3/tornado_1.0.3.0.zip",
+        "targetAbi": "10.11.11.0",
+        "timestamp": "2026-07-16T16:34:34Z",
+        "version": "1.0.3"
+      },
+      {
         "changelog": "## [1.0.2] - 2026-07-16\n\n### 🐛 Bug Fixes\n\n- Fetch TV show seasons and episodes from TMDB to populate virtual library\n",
         "checksum": "2f697141730f74de6584483a1aad85fb",
         "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.2/tornado_1.0.2.0.zip",
