@@ -5,6 +5,8 @@ using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Model.Drawing;
+using MediaBrowser.Model.Drawing;
 using Microsoft.Extensions.Logging;
 
 namespace TorNado;
