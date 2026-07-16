@@ -97,12 +97,21 @@ namespace TorNado
             }
             else if (mediaType == TorNadoMediaType.Movie)
             {
-                // To fetch movie details if needed in the future
+                var details = await _tmdbClient.GetMovieDetailsAsync(lookupId, config.TmdbApiKey, CancellationToken.None);
+                if (details != null)
+                {
+                    meta.Name = details.Title;
+                    meta.Overview = details.Overview;
+                    meta.Poster = string.IsNullOrWhiteSpace(details.PosterPath) ? null : $"https://image.tmdb.org/t/p/w500{details.PosterPath}";
+                    if (DateTime.TryParse(details.ReleaseDate, out var releaseDate))
+                    {
+                        meta.Released = releaseDate;
+                    }
+                }
             }
 
             return meta;
         }
-
         public async Task<TorNadoMeta?> GetMetaAsync(BaseItem item)
         {
             var imdbId = item.GetProviderId(MetadataProvider.Imdb);

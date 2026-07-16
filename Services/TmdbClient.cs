@@ -114,6 +114,25 @@ namespace TorNado.Services
             }
         }
 
+        public async Task<TmdbMovieDetails?> GetMovieDetailsAsync(string tmdbId, string apiKey, CancellationToken ct)
+        {
+            var url = $"https://api.themoviedb.org/3/movie/{Uri.EscapeDataString(tmdbId)}?api_key={Uri.EscapeDataString(apiKey)}";
+            try
+            {
+                using var client = CreateClient();
+                var resp = await client.GetAsync(url, ct).ConfigureAwait(false);
+                if (!resp.IsSuccessStatusCode) return null;
+
+                var content = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                return JsonSerializer.Deserialize<TmdbMovieDetails>(content, JsonOpts);
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "TMDB GetMovieDetails failed for tmdbId: {TmdbId}", tmdbId);
+                return null;
+            }
+        }
+
         public async Task<TmdbTvSeason?> GetTvSeasonAsync(string tmdbId, int seasonNumber, string apiKey, CancellationToken ct)
         {
             var url = $"https://api.themoviedb.org/3/tv/{Uri.EscapeDataString(tmdbId)}/season/{seasonNumber}?api_key={Uri.EscapeDataString(apiKey)}";
@@ -169,6 +188,17 @@ namespace TorNado.Services
         public string? PosterPath { get; set; }
         [JsonPropertyName("number_of_seasons")]
         public int NumberOfSeasons { get; set; }
+    }
+
+    public class TmdbMovieDetails
+    {
+        public int Id { get; set; }
+        public string? Title { get; set; }
+        public string? Overview { get; set; }
+        [JsonPropertyName("poster_path")]
+        public string? PosterPath { get; set; }
+        [JsonPropertyName("release_date")]
+        public string? ReleaseDate { get; set; }
     }
 
     public class TmdbTvSeason
