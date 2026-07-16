@@ -9,6 +9,22 @@
     "owner": "jsanderstechnologies",
     "versions": [
       {
+        "changelog": "## [1.0.5] - 2026-07-16\n\n### 🐛 Bug Fixes\n\n- Support legacy Gelato provider IDs and paths\n",
+        "checksum": "ea19f61b7d8071847cd377a00c3780f2",
+        "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.5/tornado_1.0.5.0.zip",
+        "targetAbi": "10.11.11.0",
+        "timestamp": "2026-07-16T17:02:07Z",
+        "version": "1.0.5"
+      },
+      {
+        "changelog": "## [1.0.4] - 2026-07-16\n\n### 🐛 Bug Fixes\n\n- Add imageUrl to build.yaml for Jellyfin catalog logo\n",
+        "checksum": "18a0e9209905518097bc78de5b17cc0b",
+        "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.4/tornado_1.0.4.0.zip",
+        "targetAbi": "10.11.11.0",
+        "timestamp": "2026-07-16T16:43:12Z",
+        "version": "1.0.4"
+      },
+      {
         "changelog": "## [1.0.3] - 2026-07-16\n\n### 🚜 Refactor\n\n- Replace all Stremio references with TorNado equivalents\n",
         "checksum": "d90da0ca7d9fa6c2dd2c11026785391a",
         "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.3/tornado_1.0.3.0.zip",
