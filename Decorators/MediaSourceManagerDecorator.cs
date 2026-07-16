@@ -214,7 +214,7 @@ public sealed class MediaSourceManagerDecorator(
                     { "TorNado", item.GetProviderId("TorNado") ?? item.GetProviderId("Gelato") },
                     { "Gelato", item.GetProviderId("Gelato") ?? item.GetProviderId("TorNado") },
                 },
-                Recursive = false,
+                Recursive = true,
                 GroupByPresentationUniqueKey = false,
                 GroupBySeriesPresentationUniqueKey = false,
                 CollapseBoxSetItems = false,
