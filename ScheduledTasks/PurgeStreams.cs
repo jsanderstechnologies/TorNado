@@ -14,7 +14,7 @@ public sealed class PurgeTorNadoStreamsTask(
 {
     public string Name => "Purge streams";
     public string Key => "PurgeTorNadoStreamsTask";
-    public string Description => "Removes all stremio streams";
+    public string Description => "Removes all torNado streams";
     public string Category => "TorNado Maintenance";
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
@@ -39,8 +39,8 @@ public sealed class PurgeTorNadoStreamsTask(
             Recursive = true,
             HasAnyProviderId = new Dictionary<string, string>
             {
-                { "Stremio", string.Empty },
-                { "stremio", string.Empty },
+                { "TorNado", string.Empty },
+                { "torNado", string.Empty },
             },
             IsDeadPerson = true,
         };

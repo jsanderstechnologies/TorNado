@@ -28,7 +28,7 @@ public class SearchActionFilter(
             cfg.DisableSearch
             || !ctx.IsApiSearchAction()
             || !ctx.TryGetActionArgument<string>("searchTerm", out var searchTerm)
-            || !await cfg.Stremio.IsReady()
+            || !await cfg.TorNado.IsReady()
         )
         {
             await next();
@@ -43,7 +43,7 @@ public class SearchActionFilter(
             return;
         }
 
-        // Handle Stremio search
+        // Handle TorNado search
         var requestedTypes = GetRequestedItemTypes(ctx);
         if (requestedTypes.Count == 0)
         {
@@ -109,14 +109,14 @@ public class SearchActionFilter(
         return requested;
     }
 
-    private async Task<List<StremioMeta>> SearchMetasAsync(
+    private async Task<List<TorNadoMeta>> SearchMetasAsync(
         string searchTerm,
         HashSet<BaseItemKind> requestedTypes,
         PluginConfiguration cfg,
         Guid userId
     )
     {
-        var tasks = new List<Task<IReadOnlyList<StremioMeta>>>();
+        var tasks = new List<Task<IReadOnlyList<TorNadoMeta>>>();
         var movieFolder = cfg.MovieFolder ?? manager.TryGetMovieFolder(userId);
         var seriesFolder = cfg.SeriesFolder ?? manager.TryGetSeriesFolder(userId);
 
@@ -126,7 +126,7 @@ public class SearchActionFilter(
 
         if (requestedTypes.Contains(BaseItemKind.Movie) && movieFolder is not null)
         {
-            tasks.Add(cfg.Stremio.SearchAsync(searchTerm, StremioMediaType.Movie));
+            tasks.Add(cfg.TorNado.SearchAsync(searchTerm, TorNadoMediaType.Movie));
         }
         else if (requestedTypes.Contains(BaseItemKind.Movie))
         {
@@ -137,7 +137,7 @@ public class SearchActionFilter(
 
         if (requestedTypes.Contains(BaseItemKind.Series) && seriesFolder is not null)
         {
-            tasks.Add(cfg.Stremio.SearchAsync(searchTerm, StremioMediaType.Series));
+            tasks.Add(cfg.TorNado.SearchAsync(searchTerm, TorNadoMediaType.Series));
         }
         else if (requestedTypes.Contains(BaseItemKind.Series))
         {
@@ -159,7 +159,7 @@ public class SearchActionFilter(
         return results;
     }
 
-    private List<BaseItemDto> ConvertMetasToDtos(List<StremioMeta> metas)
+    private List<BaseItemDto> ConvertMetasToDtos(List<TorNadoMeta> metas)
     {
         // theres a reason i initally disabled all fields but forgot....
         // infuse breaks if we do a small subset. Not sure which field it needs. Prolly mediasources
@@ -174,11 +174,11 @@ public class SearchActionFilter(
                 continue;
 
             var dto = dtoService.GetBaseItemDto(baseItem, options);
-            var stremioUri = StremioUri.FromBaseItem(baseItem);
-            dto.Id = stremioUri.ToGuid();
+            var torNadoUri = TorNadoUri.FromBaseItem(baseItem);
+            dto.Id = torNadoUri.ToGuid();
             dtos.Add(dto);
 
-            manager.SaveStremioMeta(dto.Id, meta);
+            manager.SaveTorNadoMeta(dto.Id, meta);
         }
 
         return dtos;

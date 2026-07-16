@@ -36,8 +36,8 @@ public sealed class PurgeTorNadoTask(
                     Recursive = true,
                     HasAnyProviderId = new Dictionary<string, string>
                     {
-                        { "Stremio", string.Empty },
-                        { "stremio", string.Empty },
+                        { "TorNado", string.Empty },
+                        { "torNado", string.Empty },
                     },
                     GroupByPresentationUniqueKey = false,
                     GroupBySeriesPresentationUniqueKey = false,

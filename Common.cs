@@ -13,13 +13,13 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace TorNado;
 
-public sealed class StremioUri
+public sealed class TorNadoUri
 {
-    public StremioMediaType MediaType { get; }
+    public TorNadoMediaType MediaType { get; }
     public string ExternalId { get; }
     private readonly string? _streamId;
 
-    public StremioUri(StremioMediaType mediaType, string? externalId, string? streamId = null)
+    public TorNadoUri(TorNadoMediaType mediaType, string? externalId, string? streamId = null)
     {
         if (string.IsNullOrWhiteSpace(externalId))
             throw new ArgumentException("externalId cannot be null or empty.", nameof(externalId));
@@ -29,22 +29,22 @@ public sealed class StremioUri
         _streamId = string.IsNullOrWhiteSpace(streamId) ? null : streamId;
     }
 
-    public static StremioUri? FromBaseItem(BaseItem item)
+    public static TorNadoUri? FromBaseItem(BaseItem item)
     {
         ArgumentNullException.ThrowIfNull(item);
 
         var kind = item.GetBaseItemKind();
         var mediaType = kind switch
         {
-            BaseItemKind.Movie => StremioMediaType.Movie,
-            BaseItemKind.Series or BaseItemKind.Episode => StremioMediaType.Series,
+            BaseItemKind.Movie => TorNadoMediaType.Movie,
+            BaseItemKind.Series or BaseItemKind.Episode => TorNadoMediaType.Series,
             _ => throw new NotSupportedException($"Unsupported BaseItemKind: {kind}"),
         };
 
-        var stremioId = item.GetProviderId("Stremio");
-        StremioUri? uri = null;
-        if (!string.IsNullOrWhiteSpace(stremioId))
-            uri = new StremioUri(mediaType, stremioId);
+        var torNadoId = item.GetProviderId("TorNado");
+        TorNadoUri? uri = null;
+        if (!string.IsNullOrWhiteSpace(torNadoId))
+            uri = new TorNadoUri(mediaType, torNadoId);
 
         switch (kind)
         {
@@ -53,14 +53,14 @@ public sealed class StremioUri
                     var imdb = item.GetProviderId(MetadataProvider.Imdb);
                     return string.IsNullOrWhiteSpace(imdb)
                         ? uri
-                        : new StremioUri(StremioMediaType.Movie, imdb);
+                        : new TorNadoUri(TorNadoMediaType.Movie, imdb);
                 }
             case BaseItemKind.Series:
                 {
                     var imdb = item.GetProviderId(MetadataProvider.Imdb);
                     return string.IsNullOrWhiteSpace(imdb)
                         ? uri
-                        : new StremioUri(StremioMediaType.Series, imdb);
+                        : new TorNadoUri(TorNadoMediaType.Series, imdb);
                 }
             case BaseItemKind.Episode:
                 {
@@ -74,7 +74,7 @@ public sealed class StremioUri
                         return uri;
 
                     var ext = $"{seriesImdb}:{ep.ParentIndexNumber}:{ep.IndexNumber}";
-                    return new StremioUri(StremioMediaType.Series, ext);
+                    return new TorNadoUri(TorNadoMediaType.Series, ext);
                 }
         }
 
@@ -83,10 +83,10 @@ public sealed class StremioUri
 
     public override string ToString()
     {
-        var type = MediaType == StremioMediaType.Movie ? "movie" : "series";
+        var type = MediaType == TorNadoMediaType.Movie ? "movie" : "series";
         return _streamId is null
-            ? $"stremio://{type}/{ExternalId}"
-            : $"stremio://{type}/{ExternalId}/{_streamId}";
+            ? $"torNado://{type}/{ExternalId}"
+            : $"torNado://{type}/{ExternalId}/{_streamId}";
     }
 
     public Guid ToGuid()
@@ -128,7 +128,7 @@ public static class Utils
         var mins = m.Success ? int.Parse(m.Groups[1].Value) : 0;
         var secs = s.Success ? int.Parse(s.Groups[1].Value) : 0;
 
-        // If plain number like "149" → minutes
+        // If plain number like "149" â†’ minutes
         if (!h.Success && !m.Success && !s.Success && int.TryParse(input, out var onlyNum))
             mins = onlyNum;
 
@@ -200,27 +200,27 @@ public sealed class KeyLock
 
 public static class EnumMappingExtensions
 {
-    public static StremioMediaType ToStremio(this BaseItemKind kind)
+    public static TorNadoMediaType ToTorNado(this BaseItemKind kind)
     {
         return kind switch
         {
-            BaseItemKind.Movie => StremioMediaType.Movie,
+            BaseItemKind.Movie => TorNadoMediaType.Movie,
             BaseItemKind.Series or BaseItemKind.Season or BaseItemKind.Episode =>
-                StremioMediaType.Series,
-            _ => StremioMediaType.Unknown,
+                TorNadoMediaType.Series,
+            _ => TorNadoMediaType.Unknown,
         };
     }
 
-    public static BaseItemKind ToBaseItem(this StremioMediaType type)
+    public static BaseItemKind ToBaseItem(this TorNadoMediaType type)
     {
         return type switch
         {
-            StremioMediaType.Movie => BaseItemKind.Movie,
-            StremioMediaType.Series => BaseItemKind.Series,
+            TorNadoMediaType.Movie => BaseItemKind.Movie,
+            TorNadoMediaType.Series => BaseItemKind.Series,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(type),
                 type,
-                "Unknown StremioMediaType"
+                "Unknown TorNadoMediaType"
             ),
         };
     }
@@ -487,7 +487,7 @@ public static class BaseItemExtensions
 {
     public static bool IsTorNado(this BaseItem item)
     {
-        return !string.IsNullOrWhiteSpace(item.GetProviderId("Stremio"));
+        return !string.IsNullOrWhiteSpace(item.GetProviderId("TorNado"));
     }
 
     public static bool HasStreamTag(this BaseItem item)
@@ -505,7 +505,7 @@ public static class BaseItemExtensions
 
     public static bool IsStream(this BaseItem item)
     {
-        return !string.IsNullOrWhiteSpace(item.GetProviderId("Stremio"))
+        return !string.IsNullOrWhiteSpace(item.GetProviderId("TorNado"))
             && !item.IsPrimaryVersion();
     }
 

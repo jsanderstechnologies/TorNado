@@ -42,14 +42,14 @@ public sealed class TorNadoManager(
         return networkConfig.InternalHttpPort;
     }
 
-    public void SetStremioSubtitlesCache(Guid guid, List<StremioSubtitle> subs)
+    public void SetTorNadoSubtitlesCache(Guid guid, List<TorNadoSubtitle> subs)
     {
         memoryCache.Set($"subs:{guid}", subs, TimeSpan.FromMinutes(3600));
     }
 
-    public List<StremioSubtitle>? GetStremioSubtitlesCache(Guid guid)
+    public List<TorNadoSubtitle>? GetTorNadoSubtitlesCache(Guid guid)
     {
-        return memoryCache.Get<List<StremioSubtitle>>($"subs:{guid}");
+        return memoryCache.Get<List<TorNadoSubtitle>>($"subs:{guid}");
     }
 
     public void SetStreamSync(string guid)
@@ -66,17 +66,17 @@ public sealed class TorNadoManager(
         return memoryCache.TryGetValue($"streamsync:{guid}", out _);
     }
 
-    public void SaveStremioMeta(Guid guid, StremioMeta meta)
+    public void SaveTorNadoMeta(Guid guid, TorNadoMeta meta)
     {
         memoryCache.Set($"meta:{guid}", meta, TimeSpan.FromMinutes(360));
     }
 
-    public StremioMeta? GetStremioMeta(Guid guid)
+    public TorNadoMeta? GetTorNadoMeta(Guid guid)
     {
-        return memoryCache.TryGetValue($"meta:{guid}", out var value) ? value as StremioMeta : null;
+        return memoryCache.TryGetValue($"meta:{guid}", out var value) ? value as TorNadoMeta : null;
     }
 
-    public void RemoveStremioMeta(Guid guid)
+    public void RemoveTorNadoMeta(Guid guid)
     {
         memoryCache.Remove($"meta:{guid}");
     }
@@ -141,7 +141,7 @@ public sealed class TorNadoManager(
             .FirstOrDefault();
     }
 
-    private BaseItem? Exist(StremioMeta meta, User? user = null)
+    private BaseItem? Exist(TorNadoMeta meta, User? user = null)
     {
         var item = IntoBaseItem(meta);
         if (item?.ProviderIds is { Count: > 0 })
@@ -180,7 +180,7 @@ public sealed class TorNadoManager(
     /// </summary>
     public async Task<(BaseItem? Item, bool Created)> InsertMeta(
         Folder parent,
-        StremioMeta meta,
+        TorNadoMeta meta,
         User? user,
         bool allowRemoteRefresh,
         bool refreshItem,
@@ -191,7 +191,7 @@ public sealed class TorNadoManager(
         var mediaType = meta.Type;
         BaseItem? existing;
 
-        if (mediaType is not (StremioMediaType.Movie or StremioMediaType.Series))
+        if (mediaType is not (TorNadoMediaType.Movie or TorNadoMediaType.Series))
         {
             _log.LogWarning("type {Type} is not valid, skipping", mediaType);
             return (null, false);
@@ -227,7 +227,7 @@ public sealed class TorNadoManager(
             }
 
             var lookupId = meta.ImdbId ?? meta.Id;
-            meta = await cfg.Stremio!.GetMetaAsync(lookupId, mediaType).ConfigureAwait(false);
+            meta = await cfg.TorNado!.GetMetaAsync(lookupId, mediaType).ConfigureAwait(false);
 
             if (meta is null)
             {
@@ -252,7 +252,7 @@ public sealed class TorNadoManager(
             return (null, false);
         }
 
-        if (mediaType is not (StremioMediaType.Movie or StremioMediaType.Series))
+        if (mediaType is not (TorNadoMediaType.Movie or TorNadoMediaType.Series))
         {
             _log.LogWarning("type {Type} is not valid after refresh, skipping", mediaType);
             return (null, false);
@@ -279,7 +279,7 @@ public sealed class TorNadoManager(
             return (null, false);
         }
 
-        if (mediaType == StremioMediaType.Movie)
+        if (mediaType == TorNadoMediaType.Movie)
         {
             baseItem = SaveItem(baseItem, parent);
             if (baseItem is null)
@@ -342,7 +342,7 @@ public sealed class TorNadoManager(
                 .Where(kvp =>
                     kvp.Key is nameof(MetadataProvider.Tmdb) or nameof(MetadataProvider.Tvdb)
                     || kvp.Key == nameof(MetadataProvider.TvRage)
-                    || kvp.Key == "Stremio"
+                    || kvp.Key == "TorNado"
                     || kvp.Key == nameof(MetadataProvider.Imdb)
                 )
                 .ToDictionary(),
@@ -400,19 +400,19 @@ public sealed class TorNadoManager(
             return 0;
         }
 
-        var uri = StremioUri.FromBaseItem(video);
+        var uri = TorNadoUri.FromBaseItem(video);
         if (uri is null)
         {
-            _log.LogError($"Unable to build Stremio URI for {video.Name}");
+            _log.LogError($"Unable to build TorNado URI for {video.Name}");
             return 0;
         }
 
         var providerIds = video.ProviderIds;
-        providerIds.TryAdd("Stremio", uri.ExternalId);
+        providerIds.TryAdd("TorNado", uri.ExternalId);
 
         var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
-        var stremio = cfg.Stremio;
-        var streams = await stremio.GetStreamsAsync(uri, video).ConfigureAwait(false);
+        var torNado = cfg.TorNado;
+        var streams = await torNado.GetStreamsAsync(uri, video).ConfigureAwait(false);
         var httpPort = GetHttpPort();
 
         // Filter valid streams
@@ -625,14 +625,14 @@ public sealed class TorNadoManager(
         return item.IsAuthorizedToDelete(user, allCollectionFolders);
     }
 
-    public bool IsStremio(BaseItem item)
+    public bool IsTorNado(BaseItem item)
     {
         return item.IsTorNado();
     }
 
     public async Task<BaseItem?> SyncSeriesTreesAsync(
         PluginConfiguration cfg,
-        StremioMeta seriesMeta,
+        TorNadoMeta seriesMeta,
         CancellationToken ct,
         Series? existingSeries = null
     )
@@ -643,12 +643,12 @@ public sealed class TorNadoManager(
 
         if (existingSeries is not null)
         {
-            // Local (non-TorNado) series — use as-is, no creation needed
+            // Local (non-TorNado) series â€” use as-is, no creation needed
             series = existingSeries;
         }
         else
         {
-            // TorNado series — create or find under the virtual folder
+            // TorNado series â€” create or find under the virtual folder
             if (seriesRootFolder is null || string.IsNullOrWhiteSpace(seriesRootFolder.Path))
             {
                 _log.LogWarning("seriesRootFolder null or empty for {SeriesId}", seriesMeta.Id);
@@ -703,7 +703,7 @@ public sealed class TorNadoManager(
         var stopwatch = Stopwatch.StartNew();
 
         // Group episodes by season
-        var seasonGroups = (seriesMeta.Videos ?? Enumerable.Empty<StremioMeta>())
+        var seasonGroups = (seriesMeta.Videos ?? Enumerable.Empty<TorNadoMeta>())
             .Where(e => e.Season.HasValue && (e.Episode.HasValue || e.Number.HasValue))
             .OrderBy(e => e.Season)
             .ThenBy(e => e.Episode ?? e.Number)
@@ -768,7 +768,7 @@ public sealed class TorNadoManager(
         var newSeasons = new List<Season>();
         var allNewEpisodes = new List<Episode>();
 
-        var seriesStremioId = series.GetProviderId("Stremio");
+        var seriesTorNadoId = series.GetProviderId("TorNado");
         var seriesPresentationKey = series.GetPresentationUniqueKey();
 
         foreach (var seasonGroup in seasonGroups)
@@ -786,7 +786,7 @@ public sealed class TorNadoManager(
                     seasonIndex
                 );
                 var epMeta = seasonGroup.First();
-                epMeta.Type = StremioMediaType.Episode;
+                epMeta.Type = TorNadoMediaType.Episode;
                 if (IntoBaseItem(epMeta) is not Episode episode)
                 {
                     _log.LogWarning(
@@ -826,7 +826,7 @@ public sealed class TorNadoManager(
                     );
                 }
 
-                season.SetProviderId("Stremio", $"{seriesStremioId}:{seasonIndex}");
+                season.SetProviderId("TorNado", $"{seriesTorNadoId}:{seasonIndex}");
                 season.PresentationUniqueKey = season.CreatePresentationUniqueKey();
                 newSeasons.Add(season);
                 seasonsInserted++;
@@ -869,7 +869,7 @@ public sealed class TorNadoManager(
                     season.IndexNumber
                 );
 
-                epMeta.Type = StremioMediaType.Episode;
+                epMeta.Type = TorNadoMediaType.Episode;
                 if (IntoBaseItem(epMeta) is not Episode episode)
                 {
                     _log.LogWarning(
@@ -925,8 +925,8 @@ public sealed class TorNadoManager(
     )
     {
         var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
-        var stremio = cfg.Stremio;
-        if (stremio is null)
+        var torNado = cfg.TorNado;
+        if (torNado is null)
             return;
 
         var sentinel = new DateTime(9999, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -977,7 +977,7 @@ public sealed class TorNadoManager(
                             {
                                 case Movie movie:
                                     {
-                                        var meta = await stremio
+                                        var meta = await torNado
                                             .GetMetaAsync(movie)
                                             .ConfigureAwait(false);
                                         if (meta is null)
@@ -995,7 +995,7 @@ public sealed class TorNadoManager(
                                             );
                                         chunkResults.Add(movie);
                                         _log.LogDebug(
-                                            "SyncReleaseDates: movie {Name} EndDate → {Date}",
+                                            "SyncReleaseDates: movie {Name} EndDate â†’ {Date}",
                                             movie.Name,
                                             movie.EndDate?.ToString(
                                                 "yyyy-MM-dd",
@@ -1055,14 +1055,14 @@ public sealed class TorNadoManager(
     )
     {
         var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
-        var stremio = cfg.Stremio;
-        if (stremio is null)
+        var torNado = cfg.TorNado;
+        if (torNado is null)
             return;
 
         var TorNadoProviders = new Dictionary<string, string>
         {
-            { "Stremio", string.Empty },
-            { "stremio", string.Empty },
+            { "TorNado", string.Empty },
+            { "torNado", string.Empty },
         };
 
         var continuingTorNadoSeries = libraryManager
@@ -1113,7 +1113,7 @@ public sealed class TorNadoManager(
             {
                 try
                 {
-                    var meta = await stremio.GetMetaAsync(series).ConfigureAwait(false);
+                    var meta = await torNado.GetMetaAsync(series).ConfigureAwait(false);
                     if (meta is not null)
                     {
                         var isLocal = !series.IsTorNado();
@@ -1150,7 +1150,7 @@ public sealed class TorNadoManager(
 
         if (cfg.ExtendLocalSeriesTrees)
         {
-            await SyncLocalSeriesTreesAsync(cfg, stremio, cancellationToken, progress, i, total)
+            await SyncLocalSeriesTreesAsync(cfg, torNado, cancellationToken, progress, i, total)
                 .ConfigureAwait(false);
         }
         else
@@ -1161,7 +1161,7 @@ public sealed class TorNadoManager(
 
     private async Task SyncLocalSeriesTreesAsync(
         PluginConfiguration cfg,
-        TorNadoStremioProvider stremio,
+        TorNadoDataProvider torNado,
         CancellationToken ct,
         IProgress<double>? progress,
         int progressOffset,
@@ -1195,7 +1195,7 @@ public sealed class TorNadoManager(
             ct.ThrowIfCancellationRequested();
             try
             {
-                var meta = await stremio.GetMetaAsync(series).ConfigureAwait(false);
+                var meta = await torNado.GetMetaAsync(series).ConfigureAwait(false);
                 if (meta is not null)
                 {
                     await SyncSeriesTreesAsync(cfg, meta, ct, existingSeries: series)
@@ -1319,7 +1319,7 @@ public sealed class TorNadoManager(
         var localSeries = libraryManager
             .GetItemList(new InternalItemsQuery { IncludeItemTypes = [BaseItemKind.Series] })
             .OfType<Series>()
-            .Where(s => string.IsNullOrEmpty(s.GetProviderId("Stremio")))
+            .Where(s => string.IsNullOrEmpty(s.GetProviderId("TorNado")))
             .ToList();
 
         foreach (var series in localSeries)
@@ -1354,7 +1354,7 @@ public sealed class TorNadoManager(
         return baseItems;
     }
 
-    public BaseItem? IntoBaseItem(StremioMeta meta)
+    public BaseItem? IntoBaseItem(TorNadoMeta meta)
     {
         BaseItem item;
 
@@ -1362,15 +1362,15 @@ public sealed class TorNadoManager(
 
         switch (meta.Type)
         {
-            case StremioMediaType.Series:
+            case TorNadoMediaType.Series:
                 item = new Series { };
                 break;
 
-            case StremioMediaType.Movie:
+            case TorNadoMediaType.Movie:
                 item = new Movie { };
                 break;
 
-            case StremioMediaType.Episode:
+            case TorNadoMediaType.Episode:
                 item = new Episode { };
                 break;
             default:
@@ -1382,7 +1382,7 @@ public sealed class TorNadoManager(
 
         item.PremiereDate = meta.GetPremiereDate();
 
-        // Always set EndDate so it's never NULL — NULL breaks MaxEndDate filtering (SQL NULL semantics).
+        // Always set EndDate so it's never NULL â€” NULL breaks MaxEndDate filtering (SQL NULL semantics).
         // Movies: use digital release date (TMDB type-4); sentinel 9999 means no digital date yet.
         // Exception: if PremiereDate is older than 1 year, use it as EndDate so old media without a
         // digital release date is never hidden by the unreleased filter.
@@ -1391,7 +1391,7 @@ public sealed class TorNadoManager(
             var sentinel = new DateTime(9999, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             var oneYearAgo = DateTime.UtcNow.AddYears(-1);
             item.EndDate =
-                meta.Type == StremioMediaType.Movie
+                meta.Type == TorNadoMediaType.Movie
                     ? meta.GetDigitalReleaseDate()
                         ?? (
                             item.PremiereDate.HasValue && item.PremiereDate.Value < oneYearAgo
@@ -1404,8 +1404,8 @@ public sealed class TorNadoManager(
         item.ProductionYear = meta.GetYear();
         item.Path = $"TorNado://stub/{id}";
 
-        // Provider IDs — skip for episodes since the parent series IMDB id is used there
-        if (meta.Type is not StremioMediaType.Episode && !string.IsNullOrWhiteSpace(id))
+        // Provider IDs â€” skip for episodes since the parent series IMDB id is used there
+        if (meta.Type is not TorNadoMediaType.Episode && !string.IsNullOrWhiteSpace(id))
         {
             var providerMappings = new (string Prefix, string Provider, bool StripPrefix)[]
             {
@@ -1433,8 +1433,8 @@ public sealed class TorNadoManager(
         if (!string.IsNullOrWhiteSpace(meta.ImdbId))
             item.SetProviderId(MetadataProvider.Imdb, meta.ImdbId);
 
-        var stremioUri = new StremioUri(meta.Type, meta.ImdbId ?? id);
-        item.SetProviderId("Stremio", stremioUri.ExternalId);
+        var torNadoUri = new TorNadoUri(meta.Type, meta.ImdbId ?? id);
+        item.SetProviderId("TorNado", torNadoUri.ExternalId);
 
         item.Overview = meta.Description ?? meta.Overview;
 
@@ -1450,7 +1450,7 @@ public sealed class TorNadoManager(
         if (!string.IsNullOrWhiteSpace(meta.App_Extras?.Certification))
             item.OfficialRating = meta.App_Extras.Certification;
 
-        if (meta.Type is StremioMediaType.Movie or StremioMediaType.Series)
+        if (meta.Type is TorNadoMediaType.Movie or TorNadoMediaType.Series)
         {
             if (!string.IsNullOrWhiteSpace(meta.Runtime))
                 item.RunTimeTicks = Utils.ParseToTicks(meta.Runtime);
@@ -1466,7 +1466,7 @@ public sealed class TorNadoManager(
             if (!string.IsNullOrWhiteSpace(meta.Runtime))
                 ep.RunTimeTicks = Utils.ParseToTicks(meta.Runtime);
             if (!string.IsNullOrWhiteSpace(meta.Thumbnail))
-                ep.SetProviderId("StremioThumb", meta.Thumbnail);
+                ep.SetProviderId("TorNadoThumb", meta.Thumbnail);
             var tvdbId = meta.TvdbEpisodeId();
             if (tvdbId is not null)
                 ep.SetProviderId(MetadataProvider.Tvdb, tvdbId);
@@ -1476,9 +1476,9 @@ public sealed class TorNadoManager(
         {
             series.Status = meta.GetStatus() switch
             {
-                StremioStatus.Continuing => SeriesStatus.Continuing,
-                StremioStatus.Ended => SeriesStatus.Ended,
-                StremioStatus.Upcoming => SeriesStatus.Unreleased,
+                TorNadoStatus.Continuing => SeriesStatus.Continuing,
+                TorNadoStatus.Ended => SeriesStatus.Ended,
+                TorNadoStatus.Upcoming => SeriesStatus.Unreleased,
                 _ => null,
             };
         }
@@ -1507,19 +1507,19 @@ public sealed class TorNadoManager(
     /// Enriches <paramref name="meta"/> with digital release dates from TMDB when
     /// the meta is a movie and <c>App_Extras.ReleaseDates</c> is not yet populated.
     /// </summary>
-    public async Task EnrichMetaAsync(StremioMeta meta, CancellationToken ct)
+    public async Task EnrichMetaAsync(TorNadoMeta meta, CancellationToken ct)
     {
-        if (meta.Type != StremioMediaType.Movie)
+        if (meta.Type != TorNadoMediaType.Movie)
             return;
 
         if (meta.App_Extras?.ReleaseDates is not null)
             return;
 
-        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
-        if (stremio is null)
+        var torNado = TorNadoPlugin.Instance?.Configuration.TorNado;
+        if (torNado is null)
             return;
 
-        await stremio.EnrichDigitalReleaseDateAsync(meta, ct).ConfigureAwait(false);
+        await torNado.EnrichDigitalReleaseDateAsync(meta, ct).ConfigureAwait(false);
     }
 }
 

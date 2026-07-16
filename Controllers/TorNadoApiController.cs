@@ -32,15 +32,15 @@ public sealed class TorNadoApiController : ControllerBase
         Directory.CreateDirectory(_downloadPath);
     }
 
-    [HttpGet("meta/{stremioMetaType}/{Id}")]
+    [HttpGet("meta/{torNadoMetaType}/{Id}")]
     [Authorize]
-    public async Task<ActionResult<StremioMeta>> TorNadoMeta(
-        [FromRoute, Required] StremioMediaType stremioMetaType,
+    public async Task<ActionResult<TorNadoMeta>> TorNadoMeta(
+        [FromRoute, Required] TorNadoMediaType torNadoMetaType,
         [FromRoute, Required] string id
     )
     {
         var cfg = TorNadoPlugin.Instance!.GetConfig(Guid.Empty);
-        var meta = await cfg.Stremio.GetMetaAsync(id, stremioMetaType);
+        var meta = await cfg.TorNado.GetMetaAsync(id, torNadoMetaType);
         if (meta is null)
         {
             return NotFound();
@@ -52,12 +52,12 @@ public sealed class TorNadoApiController : ControllerBase
     // Moved to CatalogController
 
     [HttpGet("subtitles/{itemId:guid}")]
-    public ActionResult<IEnumerable<StremioSubtitle>> GetSubtitles(
+    public ActionResult<IEnumerable<TorNadoSubtitle>> GetSubtitles(
         [FromRoute, Required] Guid itemId
     )
     {
-        var subs = _TorNadoManager.GetStremioSubtitlesCache(itemId);
-        return Ok(subs ?? new List<StremioSubtitle>());
+        var subs = _TorNadoManager.GetTorNadoSubtitlesCache(itemId);
+        return Ok(subs ?? new List<TorNadoSubtitle>());
     }
 
     [HttpGet("stream")]

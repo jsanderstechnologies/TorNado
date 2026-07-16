@@ -64,7 +64,7 @@ public sealed class DeleteResourceFilter(
             IncludeItemTypes = [item.GetBaseItemKind()],
             HasAnyProviderId = new Dictionary<string, string>
             {
-                { "Stremio", item.ProviderIds["Stremio"] },
+                { "TorNado", item.ProviderIds["TorNado"] },
             },
             Recursive = false,
             GroupByPresentationUniqueKey = false,

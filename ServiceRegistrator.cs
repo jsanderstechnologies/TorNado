@@ -37,7 +37,7 @@ public class ServiceRegistrator : IPluginServiceRegistrator
         services.AddSingleton<TorNadoManager>();
         services.DecorateSingle<IItemRepository, TorNadoItemRepository>();
         services.AddSingleton(sp => (TorNadoItemRepository)sp.GetRequiredService<IItemRepository>());
-        services.AddSingleton<TorNadoStremioProviderFactory>();
+        services.AddSingleton<TorNadoDataProviderFactory>();
         services.AddSingleton(sp => new Lazy<TorNadoManager>(sp.GetRequiredService<TorNadoManager>));
         services.AddSingleton<CatalogService>();
         services.AddSingleton<CatalogImportService>();

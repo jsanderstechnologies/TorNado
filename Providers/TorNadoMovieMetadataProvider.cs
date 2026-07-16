@@ -31,14 +31,14 @@ public sealed class TorNadoMovieMetadataProvider(
             return result;
         }
 
-        var stremio = GetStremio();
-        if (stremio is null)
+        var torNado = GetTorNado();
+        if (torNado is null)
             return result;
 
-        StremioMeta? meta;
+        TorNadoMeta? meta;
         try
         {
-            meta = await stremio.GetMetaAsync(id, StremioMediaType.Movie).ConfigureAwait(false);
+            meta = await torNado.GetMetaAsync(id, TorNadoMediaType.Movie).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -54,7 +54,7 @@ public sealed class TorNadoMovieMetadataProvider(
         if (manager.IntoBaseItem(meta) is not Movie movie)
             return result;
 
-        movie.ProviderIds.Remove("Stremio");
+        movie.ProviderIds.Remove("TorNado");
         result.HasMetadata = true;
         result.Item = movie;
         MapPeople(meta, result);
@@ -66,14 +66,14 @@ public sealed class TorNadoMovieMetadataProvider(
         CancellationToken cancellationToken
     )
     {
-        var stremio = GetStremio();
-        if (stremio is null || string.IsNullOrWhiteSpace(searchInfo.Name))
+        var torNado = GetTorNado();
+        if (torNado is null || string.IsNullOrWhiteSpace(searchInfo.Name))
             return [];
 
         try
         {
-            var results = await stremio
-                .SearchAsync(searchInfo.Name, StremioMediaType.Movie)
+            var results = await torNado
+                .SearchAsync(searchInfo.Name, TorNadoMediaType.Movie)
                 .ConfigureAwait(false);
             return results.Select(ToSearchResult);
         }
@@ -93,7 +93,7 @@ public sealed class TorNadoMovieMetadataProvider(
         CancellationToken cancellationToken
     ) => throw new NotImplementedException();
 
-    private static void MapPeople(StremioMeta meta, MetadataResult<Movie> result)
+    private static void MapPeople(TorNadoMeta meta, MetadataResult<Movie> result)
     {
         foreach (var member in meta.App_Extras?.Cast ?? [])
         {
@@ -165,7 +165,7 @@ public sealed class TorNadoMovieMetadataProvider(
         }
     }
 
-    private static RemoteSearchResult ToSearchResult(StremioMeta meta) =>
+    private static RemoteSearchResult ToSearchResult(TorNadoMeta meta) =>
         new()
         {
             Name = meta.GetName(),
@@ -189,7 +189,7 @@ public sealed class TorNadoMovieMetadataProvider(
         return null;
     }
 
-    private static TorNadoStremioProvider? GetStremio() =>
-        TorNadoPlugin.Instance?.Configuration.Stremio;
+    private static TorNadoDataProvider? GetTorNado() =>
+        TorNadoPlugin.Instance?.Configuration.TorNado;
 }
 

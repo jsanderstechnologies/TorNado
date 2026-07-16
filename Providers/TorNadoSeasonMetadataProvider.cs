@@ -32,15 +32,15 @@ public sealed class TorNadoSeasonMetadataProvider(ILogger<TorNadoSeasonMetadataP
             return result;
         }
 
-        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
-        if (stremio is null)
+        var torNado = TorNadoPlugin.Instance?.Configuration.TorNado;
+        if (torNado is null)
             return result;
 
-        StremioMeta? seriesMeta;
+        TorNadoMeta? seriesMeta;
         try
         {
-            seriesMeta = await stremio
-                .GetMetaAsync(seriesImdbId, StremioMediaType.Series)
+            seriesMeta = await torNado
+                .GetMetaAsync(seriesImdbId, TorNadoMediaType.Series)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -71,7 +71,7 @@ public sealed class TorNadoSeasonMetadataProvider(ILogger<TorNadoSeasonMetadataP
         CancellationToken cancellationToken
     ) => throw new NotImplementedException();
 
-    private static Season MapSeason(StremioMeta seriesMeta, string? seasonName, int? seasonNumber)
+    private static Season MapSeason(TorNadoMeta seriesMeta, string? seasonName, int? seasonNumber)
     {
         var season = new Season
         {
@@ -93,7 +93,7 @@ public sealed class TorNadoSeasonMetadataProvider(ILogger<TorNadoSeasonMetadataP
         {
             var poster = posters[seasonNumber.Value - 1];
             if (!string.IsNullOrWhiteSpace(poster))
-                season.SetProviderId("StremioSeasonPoster", poster);
+                season.SetProviderId("TorNadoSeasonPoster", poster);
         }
 
         return season;

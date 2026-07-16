@@ -42,8 +42,8 @@ public sealed class ImageResourceFilter(
             return;
         }
 
-        // Only handle cached search results — library items go through ProcessImage
-        var url = manager.GetStremioMeta(guid)?.Poster;
+        // Only handle cached search results â€” library items go through ProcessImage
+        var url = manager.GetTorNadoMeta(guid)?.Poster;
         if (url is null)
         {
             await next();

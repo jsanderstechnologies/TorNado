@@ -47,14 +47,14 @@ public sealed class TorNadoSeriesProvider : IRemoteMetadataProvider<Series, Seri
     )
     {
         var cfg = TorNadoPlugin.Instance!.GetConfig(Guid.Empty);
-        var stremio = cfg.Stremio;
-        if (stremio == null)
+        var torNado = cfg.TorNado;
+        if (torNado == null)
         {
-            _log.LogWarning("TorNado not configured (stremio provider missing); skipping refresh.");
+            _log.LogWarning("TorNado not configured (torNado provider missing); skipping refresh.");
             return;
         }
 
-        if (!await stremio.IsReady().ConfigureAwait(false))
+        if (!await torNado.IsReady().ConfigureAwait(false))
         {
             _log.LogWarning("TorNado is not ready");
             return;
@@ -102,7 +102,7 @@ public sealed class TorNadoSeriesProvider : IRemoteMetadataProvider<Series, Seri
             return;
 
         // Guard against race condition: RefreshStarted fires inside RefreshMetadata (TorNadoManager.cs:692)
-        // before AddChild/UpdateToRepositoryAsync persist the stub (lines 693-694). If Stremio metadata
+        // before AddChild/UpdateToRepositoryAsync persist the stub (lines 693-694). If TorNado metadata
         // is cached the handler can complete and create a duplicate before the original is saved.
         if (_libraryManager.GetItemById(series.Id) is null)
             return;
@@ -116,7 +116,7 @@ public sealed class TorNadoSeriesProvider : IRemoteMetadataProvider<Series, Seri
 
         try
         {
-            var meta = await stremio.GetMetaAsync(series).ConfigureAwait(false);
+            var meta = await torNado.GetMetaAsync(series).ConfigureAwait(false);
             if (meta is null)
             {
                 _log.LogWarning("Skipping {Name} - no metadata found", series.Name);
@@ -146,14 +146,14 @@ public sealed class TorNadoSeriesProvider : IRemoteMetadataProvider<Series, Seri
             return result;
         }
 
-        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
-        if (stremio is null)
+        var torNado = TorNadoPlugin.Instance?.Configuration.TorNado;
+        if (torNado is null)
             return result;
 
-        StremioMeta? meta;
+        TorNadoMeta? meta;
         try
         {
-            meta = await stremio.GetMetaAsync(id, StremioMediaType.Series).ConfigureAwait(false);
+            meta = await torNado.GetMetaAsync(id, TorNadoMediaType.Series).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -167,7 +167,7 @@ public sealed class TorNadoSeriesProvider : IRemoteMetadataProvider<Series, Seri
         if (_manager.IntoBaseItem(meta) is not Series series)
             return result;
 
-        series.ProviderIds.Remove("Stremio");
+        series.ProviderIds.Remove("TorNado");
         result.HasMetadata = true;
         result.Item = series;
         MapPeople(meta, result);
@@ -179,14 +179,14 @@ public sealed class TorNadoSeriesProvider : IRemoteMetadataProvider<Series, Seri
         CancellationToken cancellationToken
     )
     {
-        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
-        if (stremio is null || string.IsNullOrWhiteSpace(searchInfo.Name))
+        var torNado = TorNadoPlugin.Instance?.Configuration.TorNado;
+        if (torNado is null || string.IsNullOrWhiteSpace(searchInfo.Name))
             return [];
 
         try
         {
-            var results = await stremio
-                .SearchAsync(searchInfo.Name, StremioMediaType.Series)
+            var results = await torNado
+                .SearchAsync(searchInfo.Name, TorNadoMediaType.Series)
                 .ConfigureAwait(false);
             return results.Select(ToSearchResult);
         }
@@ -205,7 +205,7 @@ public sealed class TorNadoSeriesProvider : IRemoteMetadataProvider<Series, Seri
         throw new NotImplementedException();
     }
 
-    private static void MapPeople(StremioMeta meta, MetadataResult<Series> result)
+    private static void MapPeople(TorNadoMeta meta, MetadataResult<Series> result)
     {
         foreach (var member in meta.App_Extras?.Cast ?? [])
         {
@@ -277,7 +277,7 @@ public sealed class TorNadoSeriesProvider : IRemoteMetadataProvider<Series, Seri
         }
     }
 
-    private static RemoteSearchResult ToSearchResult(StremioMeta meta) =>
+    private static RemoteSearchResult ToSearchResult(TorNadoMeta meta) =>
         new()
         {
             Name = meta.GetName(),

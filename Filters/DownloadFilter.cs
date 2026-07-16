@@ -42,7 +42,7 @@ public sealed class DownloadFilter(
 
             var item = library.GetItemById<Video>(hasMediaSourceId ? mediaSourceId : guid, user);
 
-            if (item != null && manager.IsStremio(item))
+            if (item != null && manager.IsTorNado(item))
             {
                 var path = item.Path;
 

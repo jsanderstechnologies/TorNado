@@ -32,15 +32,15 @@ public sealed class TorNadoImageProvider(ILogger<TorNadoImageProvider> log)
             return [];
         }
 
-        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
-        if (stremio is null)
+        var torNado = TorNadoPlugin.Instance?.Configuration.TorNado;
+        if (torNado is null)
             return [];
 
-        var mediaType = item is Movie ? StremioMediaType.Movie : StremioMediaType.Series;
-        StremioMeta? meta;
+        var mediaType = item is Movie ? TorNadoMediaType.Movie : TorNadoMediaType.Series;
+        TorNadoMeta? meta;
         try
         {
-            meta = await stremio.GetMetaAsync(id, mediaType).ConfigureAwait(false);
+            meta = await torNado.GetMetaAsync(id, mediaType).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -59,7 +59,7 @@ public sealed class TorNadoImageProvider(ILogger<TorNadoImageProvider> log)
         CancellationToken cancellationToken
     ) => throw new NotImplementedException();
 
-    private static IEnumerable<RemoteImageInfo> BuildImages(StremioMeta meta)
+    private static IEnumerable<RemoteImageInfo> BuildImages(TorNadoMeta meta)
     {
         var images = new List<RemoteImageInfo>();
 

@@ -38,16 +38,16 @@ public sealed class TorNadoEpisodeMetadataProvider(
             return result;
         }
 
-        var stremio = TorNadoPlugin.Instance?.Configuration.Stremio;
-        if (stremio is null)
+        var torNado = TorNadoPlugin.Instance?.Configuration.TorNado;
+        if (torNado is null)
             return result;
 
         var seriesId = seriesImdbId;
-        StremioMeta? seriesMeta;
+        TorNadoMeta? seriesMeta;
         try
         {
-            seriesMeta = await stremio
-                .GetMetaAsync(seriesId, StremioMediaType.Series)
+            seriesMeta = await torNado
+                .GetMetaAsync(seriesId, TorNadoMediaType.Series)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -78,12 +78,12 @@ public sealed class TorNadoEpisodeMetadataProvider(
             return result;
         }
 
-        epMeta.Type = StremioMediaType.Episode;
+        epMeta.Type = TorNadoMediaType.Episode;
 
         if (manager.IntoBaseItem(epMeta) is not Episode ep)
             return result;
 
-        ep.ProviderIds.Remove("Stremio");
+        ep.ProviderIds.Remove("TorNado");
         result.HasMetadata = true;
         result.Item = ep;
         return result;

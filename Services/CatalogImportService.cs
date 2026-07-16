@@ -40,7 +40,7 @@ public class CatalogImportService(
             return;
         }
         var cfg = TorNadoPlugin.Instance!.GetConfig(Guid.Empty);
-        var stremio = cfg.Stremio;
+        var torNado = cfg.TorNado;
         var seriesFolder = cfg.SeriesFolder;
         var movieFolder = cfg.MovieFolder;
 
@@ -68,14 +68,14 @@ public class CatalogImportService(
         {
             var skip = 0;
             var processedItems = 0;
-            // keyed on stremio meta.Id to deduplicate within the import run
+            // keyed on torNado meta.Id to deduplicate within the import run
             var importedIds = new ConcurrentDictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
 
             while (processedItems < maxItems)
             {
                 ct.ThrowIfCancellationRequested();
 
-                var page = await stremio
+                var page = await torNado
                     .GetCatalogMetasAsync(catalogId, type, search: null, skip: skip)
                     .ConfigureAwait(false);
 
@@ -204,7 +204,7 @@ public class CatalogImportService(
                     IncludeItemTypes = [BaseItemKind.BoxSet],
                     CollapseBoxSetItems = false,
                     Recursive = true,
-                    HasAnyProviderId = new Dictionary<string, string> { { "Stremio", id } },
+                    HasAnyProviderId = new Dictionary<string, string> { { "TorNado", id } },
                 }
             )
             .OfType<BoxSet>()
@@ -218,7 +218,7 @@ public class CatalogImportService(
                     {
                         Name = config.Name,
                         IsLocked = true,
-                        ProviderIds = new Dictionary<string, string> { { "Stremio", id } },
+                        ProviderIds = new Dictionary<string, string> { { "TorNado", id } },
                     }
                 )
                 .ConfigureAwait(false);

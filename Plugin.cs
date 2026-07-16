@@ -14,7 +14,7 @@ public class TorNadoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
     private readonly ILogger<TorNadoPlugin> _log;
     private readonly TorNadoManager _manager;
     private ConcurrentDictionary<Guid, PluginConfiguration> UserConfigs { get; } = new();
-    private readonly TorNadoStremioProviderFactory _stremioFactory;
+    private readonly TorNadoDataProviderFactory _torNadoFactory;
     public PalcoCacheService PalcoCache { get; } // Migrated Palco Cache Service
 
     public TorNadoPlugin(
@@ -22,7 +22,7 @@ public class TorNadoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
         TorNadoManager manager,
         IXmlSerializer xmlSerializer,
         ILogger<TorNadoPlugin> log,
-        TorNadoStremioProviderFactory stremioFactory,
+        TorNadoDataProviderFactory torNadoFactory,
         PalcoCacheService palcoCache
     )
         : base(applicationPaths, xmlSerializer)
@@ -30,7 +30,7 @@ public class TorNadoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
         Instance = this;
         _log = log;
         _manager = manager;
-        _stremioFactory = stremioFactory;
+        _torNadoFactory = torNadoFactory;
         PalcoCache = palcoCache;
     }
 
@@ -65,7 +65,7 @@ public class TorNadoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
         base.UpdateConfiguration(cfg);
 
         _manager.ClearCache();
-        _stremioFactory.ClearCache();
+        _torNadoFactory.ClearCache();
         UserConfigs.Clear();
 
         // Notify subscribers that configuration changed
@@ -97,8 +97,8 @@ public class TorNadoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
                             userConfig?.ApplyOverrides(Instance?.Configuration)
                             ?? Instance?.Configuration;
                     }
-                    var stremio = _stremioFactory.Create(cfg);
-                    cfg.Stremio = stremio;
+                    var torNado = _torNadoFactory.Create(cfg);
+                    cfg.TorNado = torNado;
                     cfg.MovieFolder = _manager.TryGetMovieFolder(cfg);
                     cfg.SeriesFolder = _manager.TryGetSeriesFolder(cfg);
                     return cfg;

@@ -95,7 +95,7 @@ public sealed class MediaSourceManagerDecorator(
             return _inner.GetStaticMediaSources(item, enablePathSubstitution, user);
         }
 
-        var uri = StremioUri.FromBaseItem(item);
+        var uri = TorNadoUri.FromBaseItem(item);
         var actionName =
             ctx?.Items.TryGetValue("actionName", out var ao) == true ? ao as string : null;
 
@@ -211,7 +211,7 @@ public sealed class MediaSourceManagerDecorator(
                 IncludeItemTypes = [item.GetBaseItemKind()],
                 HasAnyProviderId = new Dictionary<string, string>
                 {
-                    { "Stremio", item.GetProviderId("Stremio") },
+                    { "TorNado", item.GetProviderId("TorNado") },
                 },
                 Recursive = false,
                 GroupByPresentationUniqueKey = false,
@@ -249,7 +249,7 @@ public sealed class MediaSourceManagerDecorator(
             "Found {s} streams. UserId={Action} TorNadoId={Uri}",
             TorNadoSources.Count,
             userId,
-            item.GetProviderId("Stremio")
+            item.GetProviderId("TorNado")
         );
 
         sources.AddRange(TorNadoSources);
@@ -262,7 +262,7 @@ public sealed class MediaSourceManagerDecorator(
                     !(k.Path?.StartsWith("TorNado", StringComparison.OrdinalIgnoreCase) ?? false)
                 )
                 .Where(k =>
-                    !(k.Path?.StartsWith("stremio", StringComparison.OrdinalIgnoreCase) ?? false)
+                    !(k.Path?.StartsWith("torNado", StringComparison.OrdinalIgnoreCase) ?? false)
                 )
                 .ToList();
         }

@@ -2,12 +2,12 @@ using TorNado.Config;
 
 namespace TorNado.Services;
 
-public class CatalogService(TorNadoStremioProviderFactory stremioFactory)
+public class CatalogService(TorNadoDataProviderFactory torNadoFactory)
 {
     public async Task<List<CatalogConfig>> GetCatalogsAsync(Guid userId)
     {
         var config = TorNadoPlugin.Instance!.Configuration;
-        var provider = stremioFactory.Create(userId);
+        var provider = torNadoFactory.Create(userId);
         var manifest = await provider.GetManifestAsync();
 
         if (manifest?.Catalogs == null)

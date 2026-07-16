@@ -18,15 +18,15 @@ using Microsoft.Extensions.Logging;
 
 namespace TorNado
 {
-    public class TorNadoStremioProvider
+    public class TorNadoDataProvider
     {
         private readonly string _baseUrl;
         private readonly IHttpClientFactory _http;
-        private readonly ILogger<TorNadoStremioProvider> _log;
+        private readonly ILogger<TorNadoDataProvider> _log;
         private readonly TmdbClient _tmdbClient;
         private readonly TorBoxClient _torBoxClient;
 
-        public TorNadoStremioProvider(string baseUrl, IHttpClientFactory http, ILogger<TorNadoStremioProvider> log)
+        public TorNadoDataProvider(string baseUrl, IHttpClientFactory http, ILogger<TorNadoDataProvider> log)
         {
             _baseUrl = baseUrl;
             _http = http;
@@ -44,7 +44,7 @@ namespace TorNado
             return true;
         }
 
-        public async Task<StremioMeta?> GetMetaAsync(string id, StremioMediaType mediaType)
+        public async Task<TorNadoMeta?> GetMetaAsync(string id, TorNadoMediaType mediaType)
         {
             var config = TorNadoPlugin.Instance?.Configuration;
             if (config == null || string.IsNullOrWhiteSpace(config.TmdbApiKey))
@@ -53,7 +53,7 @@ namespace TorNado
             // Strip "tmdb:" prefix if present for querying
             var lookupId = id.StartsWith("tmdb:", StringComparison.OrdinalIgnoreCase) ? id["tmdb:".Length..] : id;
 
-            var meta = new StremioMeta
+            var meta = new TorNadoMeta
             {
                 Id = id,
                 Type = mediaType,
@@ -61,7 +61,7 @@ namespace TorNado
                 Overview = "Metadata populated on-demand"
             };
 
-            if (mediaType == StremioMediaType.Series)
+            if (mediaType == TorNadoMediaType.Series)
             {
                 var details = await _tmdbClient.GetTvDetailsAsync(lookupId, config.TmdbApiKey, CancellationToken.None);
                 if (details != null)
@@ -70,7 +70,7 @@ namespace TorNado
                     meta.Overview = details.Overview;
                     meta.Poster = string.IsNullOrWhiteSpace(details.PosterPath) ? null : $"https://image.tmdb.org/t/p/w500{details.PosterPath}";
                     
-                    var videos = new List<StremioMeta>();
+                    var videos = new List<TorNadoMeta>();
                     for (int i = 1; i <= details.NumberOfSeasons; i++)
                     {
                         var season = await _tmdbClient.GetTvSeasonAsync(lookupId, i, config.TmdbApiKey, CancellationToken.None);
@@ -78,10 +78,10 @@ namespace TorNado
                         {
                             foreach (var ep in season.Episodes)
                             {
-                                videos.Add(new StremioMeta
+                                videos.Add(new TorNadoMeta
                                 {
                                     Id = $"{id}:{i}:{ep.EpisodeNumber}",
-                                    Type = StremioMediaType.Episode,
+                                    Type = TorNadoMediaType.Episode,
                                     Name = ep.Name,
                                     Season = i,
                                     Episode = ep.EpisodeNumber,
@@ -95,7 +95,7 @@ namespace TorNado
                     meta.Videos = videos;
                 }
             }
-            else if (mediaType == StremioMediaType.Movie)
+            else if (mediaType == TorNadoMediaType.Movie)
             {
                 // To fetch movie details if needed in the future
             }
@@ -103,23 +103,23 @@ namespace TorNado
             return meta;
         }
 
-        public async Task<StremioMeta?> GetMetaAsync(BaseItem item)
+        public async Task<TorNadoMeta?> GetMetaAsync(BaseItem item)
         {
             var imdbId = item.GetProviderId(MetadataProvider.Imdb);
             var tmdbId = item.GetProviderId(MetadataProvider.Tmdb);
-            var mediaType = item is Series ? StremioMediaType.Series : StremioMediaType.Movie;
+            var mediaType = item is Series ? TorNadoMediaType.Series : TorNadoMediaType.Movie;
             return await GetMetaAsync(imdbId ?? $"tmdb:{tmdbId}", mediaType).ConfigureAwait(false);
         }
 
-        public async Task EnrichDigitalReleaseDateAsync(StremioMeta meta, CancellationToken ct)
+        public async Task EnrichDigitalReleaseDateAsync(TorNadoMeta meta, CancellationToken ct)
         {
             // Optional digital release date enrichment
         }
 
         /// <summary>
-        /// Translates Stremio-style meta search into TMDB search
+        /// Translates TorNado-style meta search into TMDB search
         /// </summary>
-        public async Task<IReadOnlyList<StremioMeta>> SearchAsync(string query, StremioMediaType mediaType)
+        public async Task<IReadOnlyList<TorNadoMeta>> SearchAsync(string query, TorNadoMediaType mediaType)
         {
             var config = TorNadoPlugin.Instance?.Configuration;
             if (config == null || string.IsNullOrWhiteSpace(config.TmdbApiKey))
@@ -128,16 +128,16 @@ namespace TorNado
                 return [];
             }
 
-            var results = new List<StremioMeta>();
-            if (mediaType == StremioMediaType.Movie)
+            var results = new List<TorNadoMeta>();
+            if (mediaType == TorNadoMediaType.Movie)
             {
                 var tmdbMovies = await _tmdbClient.SearchMovieAsync(query, config.TmdbApiKey, CancellationToken.None);
                 foreach (var tmdb in tmdbMovies)
                 {
-                    results.Add(new StremioMeta
+                    results.Add(new TorNadoMeta
                     {
                         Id = $"tmdb:{tmdb.Id}",
-                        Type = StremioMediaType.Movie,
+                        Type = TorNadoMediaType.Movie,
                         Name = tmdb.Title ?? tmdb.Name,
                         Overview = tmdb.Overview,
                         Description = tmdb.Overview,
@@ -146,15 +146,15 @@ namespace TorNado
                     });
                 }
             }
-            else if (mediaType == StremioMediaType.Series)
+            else if (mediaType == TorNadoMediaType.Series)
             {
                 var tmdbShows = await _tmdbClient.SearchTvAsync(query, config.TmdbApiKey, CancellationToken.None);
                 foreach (var tmdb in tmdbShows)
                 {
-                    results.Add(new StremioMeta
+                    results.Add(new TorNadoMeta
                     {
                         Id = $"tmdb:{tmdb.Id}",
-                        Type = StremioMediaType.Series,
+                        Type = TorNadoMediaType.Series,
                         Name = tmdb.Title ?? tmdb.Name,
                         Overview = tmdb.Overview,
                         Description = tmdb.Overview,
@@ -170,7 +170,7 @@ namespace TorNado
         /// <summary>
         /// Gets streams for a media item. In TorNado, we search the TorBox Usenet network.
         /// </summary>
-        public async Task<List<StremioStream>> GetStreamsAsync(StremioUri uri, BaseItem video)
+        public async Task<List<TorNadoStream>> GetStreamsAsync(TorNadoUri uri, BaseItem video)
         {
             var config = TorNadoPlugin.Instance?.Configuration;
             if (config == null || string.IsNullOrWhiteSpace(config.TorBoxApiKey))
@@ -202,17 +202,17 @@ namespace TorNado
             // Call TorBox Usenet search using voyager/newznab endpoint
             var usenetResults = await _torBoxClient.SearchUsenetAsync(query, config.TorBoxUsenetServer, config.TorBoxApiKey, CancellationToken.None);
             
-            var streams = new List<StremioStream>();
+            var streams = new List<TorNadoStream>();
             foreach (var res in usenetResults)
             {
                 if (string.IsNullOrWhiteSpace(res.Link)) continue;
 
-                streams.Add(new StremioStream
+                streams.Add(new TorNadoStream
                 {
                     Name = $"TorBox Usenet - {res.Title}",
                     Description = $"Category: {res.Category} | Date: {res.PubDate}",
                     Url = res.Link, // Storing NZB download link as the stream URL temporarily
-                    BehaviorHints = new StremioBehaviorHints
+                    BehaviorHints = new TorNadoBehaviorHints
                     {
                         Filename = res.Title
                     }
@@ -222,23 +222,23 @@ namespace TorNado
             return streams;
         }
 
-        public async Task<List<StremioSubtitle>> GetSubtitlesAsync(string id, StremioMediaType mediaType)
+        public async Task<List<TorNadoSubtitle>> GetSubtitlesAsync(string id, TorNadoMediaType mediaType)
         {
             return [];
         }
 
-        public async Task<List<StremioMeta>> GetCatalogMetasAsync(string catalogId, string type, string? search = null, int skip = 0)
+        public async Task<List<TorNadoMeta>> GetCatalogMetasAsync(string catalogId, string type, string? search = null, int skip = 0)
         {
             return [];
         }
 
-        public Task<StremioManifest?> GetManifestAsync(bool force = false)
+        public Task<TorNadoManifest?> GetManifestAsync(bool force = false)
         {
-            return Task.FromResult<StremioManifest?>(new StremioManifest());
+            return Task.FromResult<TorNadoManifest?>(new TorNadoManifest());
         }
     }
 
-    public enum StremioMediaType
+    public enum TorNadoMediaType
     {
         Unknown,
         Movie,
@@ -246,7 +246,7 @@ namespace TorNado
         Episode
     }
 
-    public enum StremioStatus
+    public enum TorNadoStatus
     {
         Unknown,
         Continuing,
@@ -254,12 +254,12 @@ namespace TorNado
         Upcoming
     }
 
-    public class StremioStreamsResponse
+    public class TorNadoStreamsResponse
     {
-        public List<StremioStream>? Streams { get; set; }
+        public List<TorNadoStream>? Streams { get; set; }
     }
 
-    public class StremioStream
+    public class TorNadoStream
     {
         public string? Name { get; set; }
         public string? Title { get; set; }
@@ -268,7 +268,7 @@ namespace TorNado
         public string? InfoHash { get; set; }
         public int? FileIdx { get; set; }
         public List<string>? Sources { get; set; }
-        public StremioBehaviorHints? BehaviorHints { get; set; }
+        public TorNadoBehaviorHints? BehaviorHints { get; set; }
 
         public bool IsValid() => !string.IsNullOrWhiteSpace(Url) || !string.IsNullOrWhiteSpace(InfoHash);
         public bool IsTorrent() => !string.IsNullOrWhiteSpace(InfoHash);
@@ -276,18 +276,18 @@ namespace TorNado
         public Guid GetGuid() => Guid.NewGuid();
     }
 
-    public class StremioBehaviorHints
+    public class TorNadoBehaviorHints
     {
         public string? BingeGroup { get; set; }
         public string? Filename { get; set; }
     }
 
-    public class StremioSubtitleResponse
+    public class TorNadoSubtitleResponse
     {
-        public List<StremioSubtitle>? Subtitles { get; set; }
+        public List<TorNadoSubtitle>? Subtitles { get; set; }
     }
 
-    public class StremioSubtitle
+    public class TorNadoSubtitle
     {
         public string? Id { get; set; }
         public string? Url { get; set; }
@@ -301,16 +301,16 @@ namespace TorNado
         public string TwoLetterISOLanguageName() => Lang ?? "en";
     }
 
-    public class StremioManifest
+    public class TorNadoManifest
     {
         public string Name { get; set; } = "";
         public string Id { get; set; } = "";
         public string Version { get; set; } = "";
         public string? Description { get; set; }
-        public List<StremioCatalog> Catalogs { get; set; } = new();
+        public List<TorNadoCatalog> Catalogs { get; set; } = new();
     }
 
-    public class StremioCatalog
+    public class TorNadoCatalog
     {
         public string Type { get; set; } = "";
         public string Id { get; set; } = "";
@@ -319,10 +319,10 @@ namespace TorNado
         public bool IsImportable() => true;
     }
 
-    public class StremioMeta
+    public class TorNadoMeta
     {
         public required string Id { get; set; }
-        public StremioMediaType Type { get; set; } = StremioMediaType.Unknown;
+        public TorNadoMediaType Type { get; set; } = TorNadoMediaType.Unknown;
         public string? Name { get; set; }
         public string? Title { get; set; }
         public string? Poster { get; set; }
@@ -332,18 +332,18 @@ namespace TorNado
         public string? Overview { get; set; }
         public string? Background { get; set; }
         public string? Logo { get; set; }
-        public List<StremioMeta>? Videos { get; set; }
+        public List<TorNadoMeta>? Videos { get; set; }
         public string? Runtime { get; set; }
         public string? Country { get; set; }
         public float? ImdbRating { get; set; }
-        public StremioBehaviorHints? BehaviorHints { get; set; }
+        public TorNadoBehaviorHints? BehaviorHints { get; set; }
         public List<string>? Genre { get; set; }
         public string? ImdbId { get; set; }
         public DateTime? Released { get; set; }
-        public StremioStatus? Status { get; set; } = StremioStatus.Unknown;
+        public TorNadoStatus? Status { get; set; } = TorNadoStatus.Unknown;
         public int? Year { get; set; }
         public string? Slug { get; set; }
-        public StremioAppExtras? App_Extras { get; set; }
+        public TorNadoAppExtras? App_Extras { get; set; }
         public string? Thumbnail { get; set; }
         public int? Episode { get; set; }
         public int? Season { get; set; }
@@ -391,24 +391,24 @@ namespace TorNado
         public DateTime? GetDigitalReleaseDate() => null;
         public bool IsValid() => !string.IsNullOrWhiteSpace(Id) && !Id.Contains("error");
         public bool IsReleased(int bufferDays = 0) => true;
-        public StremioStatus? GetStatus() => Status;
+        public TorNadoStatus? GetStatus() => Status;
     }
 
-    public class StremioCast
+    public class TorNadoCast
     {
         public string? Name { get; set; }
         public string? Character { get; set; }
         public string? Photo { get; set; }
     }
 
-    public class StremioAppExtras
+    public class TorNadoAppExtras
     {
         public List<string?>? SeasonPosters { get; set; }
         public string? Certification { get; set; }
         public TmdbReleaseDatesContainer? ReleaseDates { get; set; }
-        public List<StremioCast>? Cast { get; set; }
-        public List<StremioCast>? Directors { get; set; }
-        public List<StremioCast>? Writers { get; set; }
+        public List<TorNadoCast>? Cast { get; set; }
+        public List<TorNadoCast>? Directors { get; set; }
+        public List<TorNadoCast>? Writers { get; set; }
     }
 
     public class TmdbReleaseDatesContainer

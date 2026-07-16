@@ -41,14 +41,14 @@ public class InsertActionFilter(
             return;
         }
 
-        if (manager.GetStremioMeta(guid) is not { } stremioMeta)
+        if (manager.GetTorNadoMeta(guid) is not { } torNadoMeta)
         {
             await next();
             return;
         }
 
         // Get root folder
-        var isSeries = stremioMeta.Type == StremioMediaType.Series;
+        var isSeries = torNadoMeta.Type == TorNadoMediaType.Series;
         var root = isSeries
             ? manager.TryGetSeriesFolder(userId)
             : manager.TryGetMovieFolder(userId);
@@ -59,7 +59,7 @@ public class InsertActionFilter(
             return;
         }
 
-        if (manager.IntoBaseItem(stremioMeta) is { } item)
+        if (manager.IntoBaseItem(torNadoMeta) is { } item)
         {
             var existing = manager.FindExistingItem(item, user);
             if (existing is not null)
@@ -76,16 +76,16 @@ public class InsertActionFilter(
 
         // Fetch full metadata
         var cfg = TorNadoPlugin.Instance!.GetConfig(userId);
-        var meta = await cfg.Stremio.GetMetaAsync(
-            stremioMeta.ImdbId ?? stremioMeta.Id,
-            stremioMeta.Type
+        var meta = await cfg.TorNado.GetMetaAsync(
+            torNadoMeta.ImdbId ?? torNadoMeta.Id,
+            torNadoMeta.Type
         );
         if (meta is null)
         {
             log.LogError(
                 "aio meta not found for {Id} {Type}, maybe try aiometadata as meta addon.",
-                stremioMeta.Id,
-                stremioMeta.Type
+                torNadoMeta.Id,
+                torNadoMeta.Type
             );
             await next();
             return;
@@ -96,7 +96,7 @@ public class InsertActionFilter(
         if (baseItem is not null)
         {
             ctx.ReplaceGuid(baseItem.Id);
-            manager.RemoveStremioMeta(guid);
+            manager.RemoveTorNadoMeta(guid);
         }
 
         await next();
@@ -114,7 +114,7 @@ public class InsertActionFilter(
             if (alreadySynced)
                 return;
 
-            if (cfg.Stremio is not { } stremio)
+            if (cfg.TorNado is not { } torNado)
                 return;
 
             log.LogInformation(
@@ -123,7 +123,7 @@ public class InsertActionFilter(
                 series.Id
             );
 
-            var meta = await stremio.GetMetaAsync(series).ConfigureAwait(false);
+            var meta = await torNado.GetMetaAsync(series).ConfigureAwait(false);
             if (meta is null)
                 return;
 
@@ -133,7 +133,7 @@ public class InsertActionFilter(
         }
         else
         {
-            // Setting disabled — clean any virtual items that may exist for this series
+            // Setting disabled â€” clean any virtual items that may exist for this series
             manager.CleanVirtualTreeItem(series, ct);
         }
     }
@@ -141,7 +141,7 @@ public class InsertActionFilter(
     public async Task<BaseItem?> InsertMetaAsync(
         Guid guid,
         Folder root,
-        StremioMeta meta,
+        TorNadoMeta meta,
         User user
     )
     {
@@ -159,7 +159,7 @@ public class InsertActionFilter(
                     user,
                     false,
                     true,
-                    meta.Type is StremioMediaType.Series,
+                    meta.Type is TorNadoMediaType.Series,
                     ct
                 );
             }

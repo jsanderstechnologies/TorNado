@@ -11,7 +11,7 @@ public sealed class TorNadoCatalogItemsSyncTask(
 {
     public string Name => "Import Catalogs";
     public string Key => "TorNadoCatalogItemsSync";
-    public string Description => "Imports items from enabled Stremio catalogs into Jellyfin.";
+    public string Description => "Imports items from enabled TorNado catalogs into Jellyfin.";
     public string Category => "TorNado";
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers() => [];

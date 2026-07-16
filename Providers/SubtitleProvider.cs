@@ -28,7 +28,7 @@ namespace TorNado.Providers
 
         private static readonly TimeSpan CacheTtl = TimeSpan.FromHours(1);
 
-        // Static so the cache is shared across all instances — Jellyfin may create
+        // Static so the cache is shared across all instances â€” Jellyfin may create
         // provider instances via its own assembly scanning, separate from the DI container.
         private static readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
 
@@ -50,20 +50,20 @@ namespace TorNado.Providers
 
         /// <summary>
         /// Fetches the subtitle list for <paramref name="uri"/>, using <see cref="IMemoryCache"/>.
-        /// On a cache miss the stremio endpoint is called and both the list and every individual
+        /// On a cache miss the torNado endpoint is called and both the list and every individual
         /// subtitle entry are stored so <see cref="GetSubtitles"/> can serve them without a
         /// second network round-trip.
         /// </summary>
-        public async Task<IReadOnlyList<StremioSubtitle>> GetSubtitlesAsync(
+        public async Task<IReadOnlyList<TorNadoSubtitle>> GetSubtitlesAsync(
             string id,
-            StremioMediaType mediaType,
+            TorNadoMediaType mediaType,
             CancellationToken ct
         )
         {
             var listKey = ListCacheKey(id, mediaType);
 
             if (
-                _cache.TryGetValue(listKey, out IReadOnlyList<StremioSubtitle>? cached)
+                _cache.TryGetValue(listKey, out IReadOnlyList<TorNadoSubtitle>? cached)
                 && cached is not null
             )
             {
@@ -74,9 +74,9 @@ namespace TorNado.Providers
             _log.LogDebug("Subtitle list cache MISS key={Key}", listKey);
 
             var cfg = TorNadoPlugin.Instance!.GetConfig(Guid.Empty);
-            var subs = await cfg.Stremio!.GetSubtitlesAsync(id, mediaType).ConfigureAwait(false);
+            var subs = await cfg.TorNado!.GetSubtitlesAsync(id, mediaType).ConfigureAwait(false);
 
-            _cache.Set(listKey, (IReadOnlyList<StremioSubtitle>)subs, CacheTtl);
+            _cache.Set(listKey, (IReadOnlyList<TorNadoSubtitle>)subs, CacheTtl);
 
             foreach (var s in subs)
                 _cache.Set(SubCacheKey(s.Id), s, CacheTtl);
@@ -89,7 +89,7 @@ namespace TorNado.Providers
             CancellationToken cancellationToken
         )
         {
-            IReadOnlyList<StremioSubtitle> subs;
+            IReadOnlyList<TorNadoSubtitle> subs;
             string filename = string.Empty;
             try
             {
@@ -118,30 +118,30 @@ namespace TorNado.Providers
                 }
                 var mediaType =
                     request.ContentType == VideoContentType.Episode
-                        ? StremioMediaType.Series
-                        : StremioMediaType.Movie;
+                        ? TorNadoMediaType.Series
+                        : TorNadoMediaType.Movie;
 
-                var stremioId = request.GetProviderId("Stremio");
+                var torNadoId = request.GetProviderId("TorNado");
                 var imdbId = request.GetProviderId("ImdbId");
 
                 if (imdbId != null)
                 {
-                    stremioId =
+                    torNadoId =
                         request.ContentType == VideoContentType.Episode
                             ? $"{imdbId}:{request.ParentIndexNumber}:{request.IndexNumber}"
                             : imdbId;
                 }
 
-                if (string.IsNullOrEmpty(stremioId))
+                if (string.IsNullOrEmpty(torNadoId))
                 {
                     _log.LogDebug(
-                        "No Stremio ID, skipping subtitle search for {Path}",
+                        "No TorNado ID, skipping subtitle search for {Path}",
                         request.MediaPath
                     );
                     return Array.Empty<RemoteSubtitleInfo>();
                 }
 
-                subs = await GetSubtitlesAsync(stremioId, mediaType, cancellationToken)
+                subs = await GetSubtitlesAsync(torNadoId, mediaType, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -243,7 +243,7 @@ namespace TorNado.Providers
             CancellationToken cancellationToken
         )
         {
-            if (!_cache.TryGetValue(SubCacheKey(id), out StremioSubtitle sub))
+            if (!_cache.TryGetValue(SubCacheKey(id), out TorNadoSubtitle sub))
             {
                 _log.LogWarning("Subtitle cache miss/expired for id={Id}", id);
                 throw new FileNotFoundException($"Subtitle not found for id {id}");
@@ -297,7 +297,7 @@ namespace TorNado.Providers
             if (s.Contains(".subf2m"))
                 return "subrip";
             if (s.Contains("subs") && s.Contains(".strem.io"))
-                return "srt"; // Stremio proxies are always normalized to .srt
+                return "srt"; // TorNado proxies are always normalized to .srt
 
             _log.LogWarning("unkown subtitle format for {Path}, defaulting to srt", s);
             return "srt";
@@ -327,7 +327,7 @@ namespace TorNado.Providers
                 .Select(t => t.ToLowerInvariant())
                 .ToHashSet();
 
-        private static string ListCacheKey(string id, StremioMediaType mediaType) =>
+        private static string ListCacheKey(string id, TorNadoMediaType mediaType) =>
             $"TorNado:subtitles:{mediaType.ToString().ToLower()}/{id}";
 
         private static string SubCacheKey(string id) => $"TorNado:subtitle:{id}";

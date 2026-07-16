@@ -42,7 +42,7 @@ public class PluginConfiguration : BasePluginConfiguration
 
     [JsonIgnore]
     [XmlIgnore]
-    public TorNadoStremioProvider? Stremio;
+    public TorNadoDataProvider? TorNado;
 
     [JsonIgnore]
     [XmlIgnore]
@@ -105,25 +105,25 @@ public class UserConfig
     }
 }
 
-public class TorNadoStremioProviderFactory(IHttpClientFactory http, ILoggerFactory log)
+public class TorNadoDataProviderFactory(IHttpClientFactory http, ILoggerFactory log)
 {
     private readonly System.Collections.Concurrent.ConcurrentDictionary<
         string,
-        TorNadoStremioProvider
+        TorNadoDataProvider
     > _cache = new(StringComparer.OrdinalIgnoreCase);
 
-    public TorNadoStremioProvider Create(Guid userId)
+    public TorNadoDataProvider Create(Guid userId)
     {
         var cfg = TorNadoPlugin.Instance!.Configuration.GetEffectiveConfig(userId);
         return Create(cfg);
     }
 
-    public TorNadoStremioProvider Create(PluginConfiguration cfg)
+    public TorNadoDataProvider Create(PluginConfiguration cfg)
     {
         var key = cfg.TorBoxApiKey;
         return _cache.GetOrAdd(
             key,
-            _ => new TorNadoStremioProvider(cfg.TorBoxUsenetServer, http, log.CreateLogger<TorNadoStremioProvider>())
+            _ => new TorNadoDataProvider(cfg.TorBoxUsenetServer, http, log.CreateLogger<TorNadoDataProvider>())
         );
     }
 
