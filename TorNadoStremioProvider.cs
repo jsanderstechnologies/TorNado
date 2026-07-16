@@ -53,13 +53,54 @@ namespace TorNado
             // Strip "tmdb:" prefix if present for querying
             var lookupId = id.StartsWith("tmdb:", StringComparison.OrdinalIgnoreCase) ? id["tmdb:".Length..] : id;
 
-            return new StremioMeta
+            var meta = new StremioMeta
             {
                 Id = id,
                 Type = mediaType,
                 Name = "Metadata Stub",
                 Overview = "Metadata populated on-demand"
             };
+
+            if (mediaType == StremioMediaType.Series)
+            {
+                var details = await _tmdbClient.GetTvDetailsAsync(lookupId, config.TmdbApiKey, CancellationToken.None);
+                if (details != null)
+                {
+                    meta.Name = details.Name;
+                    meta.Overview = details.Overview;
+                    meta.Poster = string.IsNullOrWhiteSpace(details.PosterPath) ? null : $"https://image.tmdb.org/t/p/w500{details.PosterPath}";
+                    
+                    var videos = new List<StremioMeta>();
+                    for (int i = 1; i <= details.NumberOfSeasons; i++)
+                    {
+                        var season = await _tmdbClient.GetTvSeasonAsync(lookupId, i, config.TmdbApiKey, CancellationToken.None);
+                        if (season?.Episodes != null)
+                        {
+                            foreach (var ep in season.Episodes)
+                            {
+                                videos.Add(new StremioMeta
+                                {
+                                    Id = $"{id}:{i}:{ep.EpisodeNumber}",
+                                    Type = StremioMediaType.Episode,
+                                    Name = ep.Name,
+                                    Season = i,
+                                    Episode = ep.EpisodeNumber,
+                                    Number = ep.EpisodeNumber,
+                                    Overview = ep.Overview,
+                                    Released = ep.AirDate,
+                                });
+                            }
+                        }
+                    }
+                    meta.Videos = videos;
+                }
+            }
+            else if (mediaType == StremioMediaType.Movie)
+            {
+                // To fetch movie details if needed in the future
+            }
+
+            return meta;
         }
 
         public async Task<StremioMeta?> GetMetaAsync(BaseItem item)

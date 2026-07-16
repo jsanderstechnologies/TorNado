@@ -94,6 +94,44 @@ namespace TorNado.Services
             }
             return null;
         }
+
+        public async Task<TmdbTvDetails?> GetTvDetailsAsync(string tmdbId, string apiKey, CancellationToken ct)
+        {
+            var url = $"https://api.themoviedb.org/3/tv/{Uri.EscapeDataString(tmdbId)}?api_key={Uri.EscapeDataString(apiKey)}";
+            try
+            {
+                using var client = CreateClient();
+                var resp = await client.GetAsync(url, ct).ConfigureAwait(false);
+                if (!resp.IsSuccessStatusCode) return null;
+
+                var content = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                return JsonSerializer.Deserialize<TmdbTvDetails>(content, JsonOpts);
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "TMDB GetTvDetails failed for tmdbId: {TmdbId}", tmdbId);
+                return null;
+            }
+        }
+
+        public async Task<TmdbTvSeason?> GetTvSeasonAsync(string tmdbId, int seasonNumber, string apiKey, CancellationToken ct)
+        {
+            var url = $"https://api.themoviedb.org/3/tv/{Uri.EscapeDataString(tmdbId)}/season/{seasonNumber}?api_key={Uri.EscapeDataString(apiKey)}";
+            try
+            {
+                using var client = CreateClient();
+                var resp = await client.GetAsync(url, ct).ConfigureAwait(false);
+                if (!resp.IsSuccessStatusCode) return null;
+
+                var content = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                return JsonSerializer.Deserialize<TmdbTvSeason>(content, JsonOpts);
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "TMDB GetTvSeason failed for tmdbId: {TmdbId}, season: {Season}", tmdbId, seasonNumber);
+                return null;
+            }
+        }
     }
 
     public class TmdbSearchResponse<T>
@@ -120,6 +158,35 @@ namespace TorNado.Services
         
         [JsonPropertyName("vote_average")]
         public float VoteAverage { get; set; }
+    }
+
+    public class TmdbTvDetails
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? Overview { get; set; }
+        [JsonPropertyName("poster_path")]
+        public string? PosterPath { get; set; }
+        [JsonPropertyName("number_of_seasons")]
+        public int NumberOfSeasons { get; set; }
+    }
+
+    public class TmdbTvSeason
+    {
+        [JsonPropertyName("season_number")]
+        public int SeasonNumber { get; set; }
+        public List<TmdbEpisode>? Episodes { get; set; }
+    }
+
+    public class TmdbEpisode
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? Overview { get; set; }
+        [JsonPropertyName("episode_number")]
+        public int EpisodeNumber { get; set; }
+        [JsonPropertyName("air_date")]
+        public DateTime? AirDate { get; set; }
     }
 }
 
