@@ -121,7 +121,7 @@ namespace TorNado.Providers
                         ? TorNadoMediaType.Series
                         : TorNadoMediaType.Movie;
 
-                var torNadoId = request.GetProviderId("TorNado");
+                var torNadoId = request.GetProviderId("TorNado") ?? request.GetProviderId("Gelato");
                 var imdbId = request.GetProviderId("ImdbId");
 
                 if (imdbId != null)

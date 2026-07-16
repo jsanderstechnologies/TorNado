@@ -211,7 +211,8 @@ public sealed class MediaSourceManagerDecorator(
                 IncludeItemTypes = [item.GetBaseItemKind()],
                 HasAnyProviderId = new Dictionary<string, string>
                 {
-                    { "TorNado", item.GetProviderId("TorNado") },
+                    { "TorNado", item.GetProviderId("TorNado") ?? item.GetProviderId("Gelato") },
+                    { "Gelato", item.GetProviderId("Gelato") ?? item.GetProviderId("TorNado") },
                 },
                 Recursive = false,
                 GroupByPresentationUniqueKey = false,
@@ -263,6 +264,9 @@ public sealed class MediaSourceManagerDecorator(
                 )
                 .Where(k =>
                     !(k.Path?.StartsWith("torNado", StringComparison.OrdinalIgnoreCase) ?? false)
+                )
+                .Where(k =>
+                    !(k.Path?.StartsWith("gelato", StringComparison.OrdinalIgnoreCase) ?? false)
                 )
                 .ToList();
         }

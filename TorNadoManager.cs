@@ -768,7 +768,7 @@ public sealed class TorNadoManager(
         var newSeasons = new List<Season>();
         var allNewEpisodes = new List<Episode>();
 
-        var seriesTorNadoId = series.GetProviderId("TorNado");
+        var seriesTorNadoId = series.GetProviderId("TorNado") ?? series.GetProviderId("Gelato");
         var seriesPresentationKey = series.GetPresentationUniqueKey();
 
         foreach (var seasonGroup in seasonGroups)
@@ -1319,7 +1319,7 @@ public sealed class TorNadoManager(
         var localSeries = libraryManager
             .GetItemList(new InternalItemsQuery { IncludeItemTypes = [BaseItemKind.Series] })
             .OfType<Series>()
-            .Where(s => string.IsNullOrEmpty(s.GetProviderId("TorNado")))
+            .Where(s => string.IsNullOrEmpty(s.GetProviderId("TorNado")) && string.IsNullOrEmpty(s.GetProviderId("Gelato")))
             .ToList();
 
         foreach (var series in localSeries)

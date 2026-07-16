@@ -41,7 +41,7 @@ public sealed class TorNadoUri
             _ => throw new NotSupportedException($"Unsupported BaseItemKind: {kind}"),
         };
 
-        var torNadoId = item.GetProviderId("TorNado");
+        var torNadoId = item.GetProviderId("TorNado") ?? item.GetProviderId("Gelato");
         TorNadoUri? uri = null;
         if (!string.IsNullOrWhiteSpace(torNadoId))
             uri = new TorNadoUri(mediaType, torNadoId);
@@ -487,7 +487,8 @@ public static class BaseItemExtensions
 {
     public static bool IsTorNado(this BaseItem item)
     {
-        return !string.IsNullOrWhiteSpace(item.GetProviderId("TorNado"));
+        return !string.IsNullOrWhiteSpace(item.GetProviderId("TorNado"))
+            || !string.IsNullOrWhiteSpace(item.GetProviderId("Gelato"));
     }
 
     public static bool HasStreamTag(this BaseItem item)
