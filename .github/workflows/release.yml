@@ -1,31 +1,79 @@
-name: Release
+name: "🚀 Release & Publish Plugin"
 
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
-    
-    permissions:
-      contents: write
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.RELEASE_TOKEN }}
           fetch-depth: 0
       
       - name: Configure Git
         run: |
-          git config user.name "${{ github.repository_owner }}"
-          git config user.email "${{ github.event.pusher.email || format('{0}@users.noreply.github.com', github.repository_owner) }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
       
       - name: Set up git-cliff
         uses: kenji-miyake/setup-git-cliff@v1
 
-      - name: Run make release
-        run: make release
+      - name: Bump Version and Push
+        id: versioning
+        run: |
+          git fetch --tags
+          NEW_VERSION=$(git cliff --bumped-version)
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          git cliff --unreleased --tag $NEW_VERSION --strip all > /tmp/release_notes.md
+          
+          sed -i 's/^version: .*/version: "'"${NEW_VERSION#v}"'"/' build.yaml
+          git add build.yaml
+          git commit -m "chore(release): bump version to $NEW_VERSION"
+          git tag $NEW_VERSION
+          git push origin HEAD --tags
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Build Jellyfin Plugin
+        uses: oddstr13/jellyfin-plugin-repository-manager@v1.1.1
+        id: jprm
+        with:
+          dotnet-target: "net9.0"
+
+      - name: Prepare GitHub Release assets
+        id: assets
+        run: |
+          mkdir -p release_assets
+          cp ${{ steps.jprm.outputs.artifact }} release_assets/
+          cd release_assets
+          for file in ./*; do
+            md5sum ${file#./} >> ${file%.*}.md5
+            sha256sum ${file#./} >> ${file%.*}.sha256
+          done
+          ls -l
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.NEW_VERSION }}
+          name: ${{ env.NEW_VERSION }}
+          body_path: /tmp/release_notes.md
+          files: release_assets/*
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Jellyfin plugin repo
+        uses: Kevinjil/jellyfin-plugin-repo-action@v0.4.3
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
