@@ -9,6 +9,14 @@
     "owner": "jsanderstechnologies",
     "versions": [
       {
+        "changelog": "## [1.0.6] - 2026-07-16\n\n### 🐛 Bug Fixes\n\n- Set Recursive=true when querying movie stream sources\n",
+        "checksum": "ede42e79bc8c2bdbdf643f70e7e1f6fc",
+        "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.6/tornado_1.0.6.0.zip",
+        "targetAbi": "10.11.11.0",
+        "timestamp": "2026-07-16T17:11:14Z",
+        "version": "1.0.6"
+      },
+      {
         "changelog": "## [1.0.5] - 2026-07-16\n\n### 🐛 Bug Fixes\n\n- Support legacy Gelato provider IDs and paths\n",
         "checksum": "ea19f61b7d8071847cd377a00c3780f2",
         "sourceUrl": "https://github.com/jsanderstechnologies/TorNado/releases/download/v1.0.5/tornado_1.0.5.0.zip",
